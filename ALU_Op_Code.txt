@@ -1,0 +1,36 @@
+		case Sel is
+					when "0000" =>--addition
+						result_middle := std_logic_vector(unsigned(input_1)+unsigned(input_2));
+					when "0001" => --substraction					
+						result_middle := std_logic_vector(unsigned(input_1) +unsigned(not input_2)+1);
+					when "0010" =>
+						result_middle:= input_1 and input_2;
+					when "0011" =>	 
+						result_middle:= input_1 or input_2;
+					when "0100" =>
+						result_middle:= input_1 xor input_2;
+					when "0101" =>
+						result_middle:= not input_1;
+					when "0110" =>--logic shift left
+					   if(input_2=(input_2'range =>'0')) then
+						result_middle := std_logic_vector(unsigned(input_1) sll 8);
+					   else
+						result_middle := std_logic_vector(unsigned(input_1) sll to_integer(unsigned(input_2)));
+						end if;
+					when "0111" =>--logic shift right
+						result_middle := std_logic_vector(unsigned(input_1) srl to_integer(unsigned(input_2)));
+					when "1000" =>--arithmetic shift right
+						result_middle :=std_logic_vector(SHIFT_RIGHT(signed(input_1),to_integer(signed(input_2))));
+					when "1001"=>--rotate left,B can be negative in two's complement;
+					 	  
+						result_middle :=std_logic_vector(unsigned(input_1) rol to_integer(signed(input_2)));
+					when "1010"=>
+						result_middle :=input_1;
+					when "1011"=>
+						result_middle :=input_2;
+					when "1100"=> --logic shift right reverse version
+						result_middle := std_logic_vector(unsigned(input_2) sll to_integer(unsigned(input_1)));
+						end if;
+					when others =>	 
+						result_middle := (input_1'range =>'0');
+				end case;
