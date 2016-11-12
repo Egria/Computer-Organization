@@ -18,7 +18,7 @@ end memory;
 ---------------------------------------------------
 
 architecture behv of memory is  
-type ram_type is array (0 to 255) of 
+type ram_type is array (0 to 15) of 
         		std_logic_vector(15 downto 0);
 signal tmp_ram: ram_type;
           
@@ -30,8 +30,7 @@ begin
 				tmp_ram(1)<="1101101101001111";--Mem[15]<=r[2],SW R3 R2 F
 				tmp_ram(2)<="1001100111101111";--r[7]<=Mem[15]=0x3333; LW R1 R7 F
 				tmp_ram(8)<="0011001100110011";--Mem[8]=0x3333
-            data_out<=(data_out'range=>'0');
-	 elsif(falling_edge(clock)) then
+	 elsif(rising_edge(clock)) then
 	if(MemWrite='1') then
 			tmp_ram(to_integer(unsigned(address))) <= data_in;
 	elsif(MemRead='1') then
