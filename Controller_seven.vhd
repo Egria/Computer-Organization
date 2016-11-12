@@ -46,7 +46,8 @@ entity Controler_seven is
 			  IorD : out std_logic;
 			  SE: out std_logic;
 			  bZero_ctrl: in std_logic;
-			  next_instruction: out std_logic
+			  next_instruction: out std_logic;
+			  state_code: out std_logic_vector(3 downto 0)
 );
 end Controler_seven;
 
@@ -86,6 +87,7 @@ begin
 		if(rst = '0') then
 			next_instruction<='0';
 			state <= instruction_fetch;
+			state_code <= "0000"; --IF
 			IorD <= '0' ;
 			IRWrite <= '0' ;
 			MemRead <= '0' ;
@@ -113,6 +115,7 @@ begin
 					IRWrite <= '1' ;
 					RegWrite <= "000" ;
 					state <= decode ;
+					state_code <= "0001" ; --DE
 				when decode =>
 				next_instruction<='0';
 					MemRead <= '0' ;
@@ -122,6 +125,7 @@ begin
 					SE<='0';
 					ALUOp<="0000";
 					state <= execute ;
+					state_code <= "0010"; --EXE
 				when execute =>
 					IRWrite <= '0';
 					case instructions(15 downto 11) is 
@@ -130,18 +134,21 @@ begin
 							ALUOp <= "1010" ;
 							PCSource <= '1' ;
 							state <= instruction_fetch ;
+							state_code <= "0000" ; --IF
 						when "10011" =>				-------------LW	
 							ALUSrcA <= '1' ;
 							ALUSrcB <= "10" ;
 							ALUOp <= "0000" ;
 							SE<='1';
 							state <= mem_control ;
+							state_code <= "0011" ; --MEM
 						when "11011" =>				-------------SW	
 							ALUSrcA <= '1';
 							ALUSrcB <= "10" ;
 							ALUOp <= "0000" ;
 							SE<='1';
 							state <= mem_control ;
+							state_code <= "0011"; --MEM
 						when "11100" =>
 							case instructions(1 downto 0) is
 								when "01" =>			-------------ADDU
@@ -156,6 +163,7 @@ begin
 									null ;
 							end case ;
 							state <= write_reg ;
+							state_code <= "0100"; --WB
 						when "11101" =>
 							case instructions(4 downto 0) is
 								when "01101" =>		------------OR
@@ -163,6 +171,7 @@ begin
 									ALUSrcB <= "00";
 									ALUOp <= "1010";
 									state <= write_reg ;
+									state_code <= "0100" ; --WB
 								when "00000" =>
 									case instructions(7 downto 5) is
 										when "000" =>	------------JR
@@ -171,6 +180,7 @@ begin
 											PCWrite <= '1';
 											PCSource <= '0' ;
 											state <= instruction_fetch ;
+											state_code <= "0000"; --IF
 										when others =>
 											null ;
 									end case ;
@@ -188,10 +198,12 @@ begin
 							MemRead <= '1' ;
 							IorD <= '1' ;
 							state <= write_reg ;
+							state_code <= "0100"; --WB
 						when "11011" =>				-------------SW	
 							MemWrite <= '1' ;
 							IorD <= '1' ;
 							state <= write_reg ;
+							state_code <= "0100"; --WB
 						when others =>
 							null ;
 					end case;
@@ -232,6 +244,7 @@ begin
 							null ;
 					end case ;
 					state <= instruction_fetch ;
+					state_code <="0000"; --IF
 			end case;
 		end if ;
 	end process;
