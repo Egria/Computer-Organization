@@ -46,7 +46,6 @@ entity Controler_seven is
 			  IorD : out std_logic;
 			  SE: out std_logic;
 			  bZero_ctrl: in std_logic;
-			  next_instruction: out std_logic;
 			  state_code: out std_logic_vector(3 downto 0)
 );
 end Controler_seven;
@@ -73,11 +72,13 @@ begin
 		end if ;
 	end process;
 	
-	process(bzero)
+	process(bzero,rst)
 	begin
-		if bzero = '1' then
+		if(rst='0') then
+			PCWriteCond<='0';
+		elsif (bzero = '1') then
 			PCWriteCond <= '1' ;
-		elsif bzero = '0' then
+		elsif (bzero = '0') then
 			PCWriteCond <= '0' ;
 		end if ;
 	end process ;
@@ -85,7 +86,6 @@ begin
 	process(rst,clk)
 	begin
 		if(rst = '0') then
-			next_instruction<='0';
 			state <= instruction_fetch;
 			state_code <= "0000"; --IF
 			IorD <= '0' ;
@@ -100,11 +100,10 @@ begin
 			PCSource <= '0' ;
 			SE <='0';
 			RegDst <= "00" ;
-			RegWrite <= "000" ;
-		elsif rising_edge(clk) then
+				RegWrite <= "000" ;
+		elsif falling_edge(clk) then
 			case state is
 				when instruction_fetch =>
-				next_instruction<='1';
 					MemRead <= '1' ;
 					ALUSrcA <= '0' ;
 					IorD <= '0' ;
@@ -117,7 +116,6 @@ begin
 					state <= decode ;
 					state_code <= "0001" ; --DE
 				when decode =>
-				next_instruction<='0';
 					MemRead <= '0' ;
 					PCWrite <= '0' ;
 					ALUSrcA<='0';
@@ -188,7 +186,8 @@ begin
 									null ;
 							end case ;
 							when others =>
-								null ;
+									state <= instruction_fetch ;
+									state_code <= "0000"; --IF
 					end case ;
 				when mem_control =>
 					PCWrite <= '0' ;
@@ -250,3 +249,4 @@ begin
 	end process;
 
 end Behavioral;
+
