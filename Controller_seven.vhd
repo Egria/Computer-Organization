@@ -127,6 +127,14 @@ begin
 				when execute =>
 					IRWrite <= '0';
 					case instructions(15 downto 11) is 
+						when "00001" =>                         -------------Temporarily NOP
+							case instructions(10 downto 0) is 
+								when "00000000000" =>   -------------NOP
+									state<=instuction_fetch;
+									state_code<="0000"; --IF
+								when others=>
+									null;
+							end case;
 						when "00100" =>				-------------BEQZ
 							ALUSrcA <= '1' ;
 							ALUOp <= "1010" ;
