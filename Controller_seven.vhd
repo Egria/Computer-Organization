@@ -53,7 +53,7 @@ end Controler_seven;
 architecture Behavioral of Controler_seven is
 
 signal bzero : std_logic ;
-type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg);
+type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg,interrupt);
 signal state : controler_state;
 begin
 
@@ -122,7 +122,7 @@ begin
 						when "00001" =>                         -------------Temporarily NOP
 							case instructions(10 downto 0) is 
 								when "00000000000" =>   -------------NOP
-									state<=instuction_fetch;
+									state<=instruction_fetch;
 									state_code<="0000"; --IF
 								when others=>
 									null;
@@ -186,7 +186,10 @@ begin
 								when others =>
 									null ;
 							end case ;
-							when others =>
+						when "11111" => 				-------------INT
+							state <= interrupt;
+							state_code <= "1111";
+						when others =>
 									state <= instruction_fetch ;
 									state_code <= "0000"; --IF
 					end case ;
@@ -245,9 +248,11 @@ begin
 					end case ;
 					state <= instruction_fetch ;
 					state_code <="0000"; --IF
+				when interrupt =>
+					state<=intterupt;
+					state_code<="1111";
 			end case;
 		end if ;
 	end process;
 
 end Behavioral;
-
