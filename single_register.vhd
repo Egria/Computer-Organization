@@ -18,21 +18,18 @@ port(	 clk,rst:	in std_logic;
 end single_register;
 
 architecture behv of single_register is
-signal tmp_single_register: std_logic_vector(15 downto 0);
 
 begin				
 	process(clk,rst)
 	begin
 	if(rst='0') then
-		tmp_single_register<=(tmp_single_register'range=>'0');
-	elsif(clk'event and clk='1') then
+		single_register_out<=(single_register_out'range=>'0');
+	elsif(clk'event and clk='0') then
 			if single_register_enable='1' then
-				tmp_single_register <= single_register_in;
+				single_register_out <= single_register_in;
 			end if;
 	end if;
 	end process;
-	
-	single_register_out<=tmp_single_register;
-end behv;
+	end behv;
 
 

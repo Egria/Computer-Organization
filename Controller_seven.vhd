@@ -72,20 +72,11 @@ begin
 		end if ;
 	end process;
 	
-	process(bzero,rst)
-	begin
-		if(rst='0') then
-			PCWriteCond<='0';
-		elsif (bzero = '1') then
-			PCWriteCond <= '1' ;
-		elsif (bzero = '0') then
-			PCWriteCond <= '0' ;
-		end if ;
-	end process ;
 	
 	process(rst,clk)
 	begin
 		if(rst = '0') then
+			PCWriteCond<='0';
 			state <= instruction_fetch;
 			state_code <= "0000"; --IF
 			IorD <= '0' ;
@@ -114,10 +105,11 @@ begin
 					IRWrite <= '1' ;
 					RegWrite <= "000" ;
 					state <= decode ;
+					PCWriteCond<='0';
 					state_code <= "0001" ; --DE
 				when decode =>
-					MemRead <= '0' ;
-					PCWrite <= '0' ;
+					MemRead <='0';
+					PCWrite <='0';
 					ALUSrcA<='0';
 					ALUSrcB<="10";
 					SE<='0';
@@ -127,18 +119,11 @@ begin
 				when execute =>
 					IRWrite <= '0';
 					case instructions(15 downto 11) is 
-						when "00001" =>                         -------------Temporarily NOP
-							case instructions(10 downto 0) is 
-								when "00000000000" =>   -------------NOP
-									state<=instuction_fetch;
-									state_code<="0000"; --IF
-								when others=>
-									null;
-							end case;
 						when "00100" =>				-------------BEQZ
-							ALUSrcA <= '1' ;
-							ALUOp <= "1010" ;
-							PCSource <= '1' ;
+							ALUSrcA <= '1';
+							ALUOp <= "1010";
+							PCSource <= '1';
+							PCWriteCond<=bzero;
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
 						when "10011" =>				-------------LW	

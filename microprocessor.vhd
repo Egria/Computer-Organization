@@ -42,7 +42,10 @@ port(
 	s4_out,s15_out,s7_out,s1_out,s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out: out std_logic_vector(15 downto 0);
 	s16_out: out std_logic_vector(2 downto 0);	
 	state_code: out std_logic_vector(3 downto 0);
-	alu_zero_led:out std_logic
+	alu_zero_led:out std_logic;
+	pc_write_condition:out std_logic;
+	pc_write_observer: out std_logic
+
 );
 
 end microprocessor;
@@ -73,6 +76,8 @@ port(	clock:	in 	std_logic;
 	s4_out,s15_out,s7_out,s1_out,s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out: out std_logic_vector(15 downto 0);
 	s16_out: out std_logic_vector(2 downto 0);
 	--for test purpose only;
+	pc_write_observer: out std_logic;
+		pc_write_condition:out std_logic;
 	instructions: out std_logic_vector(15 downto 0)
 );
 end component;
@@ -111,7 +116,7 @@ U_DATA_PATH: data_path port map(clock,rst,RegDst,RegWrite,RegRead,MemtoReg,ALUSr
 	ALUSrcB,ALUOp,MemRead,MemWrite,IorD,IRWrite,PCWrite,PCSource,PCWriteCond,ALU_zero,
 	SE,data_bus_observer,s6_out,s9_out,s14_out,s4_out,s15_out,s7_out,s1_out,
 	s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out,
-	s16_out,
+	s16_out,	pc_write_observer,pc_write_condition,
 	instructions);
 U_Controler_Seven: Controler_seven port map(rst,clock,instructions,
 	PCWrite,PCWriteCond,PCSource,ALUOp,ALUSrcA,ALUSrcB,MemRead,MemWrite,

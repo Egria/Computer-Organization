@@ -39,7 +39,7 @@ begin
   begin
     if rst='0' then				-- high active
         tmp_rf <= (tmp_rf'range => "0000000000000000");
-   elsif (clock'event and clock = '0') then
+   elsif (clock'event and clock = '1') then
 	  case RegWrite is
 	   when "001" =>
 	    tmp_rf(to_integer(unsigned(write_addr))) <= write_data;
@@ -57,8 +57,8 @@ begin
   read_1_process: process(clock, rst, RegRead, read_1_addr)
   begin
     if rst='0' then
-	data_to_A <= (data_to_A'range =>'0');
-    elsif (clock'event and clock = '0') then
+		data_to_A <= (data_to_A'range =>'0');
+    elsif (clock'event and clock = '1') then
 	  case RegRead is
 	  --when "00" =>							 
 	    --data_to_A <= tmp_rf(to_integer(unsigned(read_1_addr)));
@@ -78,7 +78,7 @@ begin
   begin
     if rst='0' then
 		data_to_B<= (data_to_B'range =>'0');
-    elsif (clock'event and clock = '0') then
+    elsif (clock'event and clock = '1') then
 	  data_to_B <= tmp_rf(to_integer(unsigned(read_2_addr)));
 	  end if;
 	end process;

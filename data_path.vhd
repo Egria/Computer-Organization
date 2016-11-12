@@ -35,7 +35,8 @@ port(	clock:	in 	std_logic;
 	s4_out,s15_out,s7_out,s1_out,s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out: out std_logic_vector(15 downto 0);
 	s16_out: out std_logic_vector(2 downto 0);
 	--for test purpose only
-	
+	pc_write_observer: out std_logic;
+	pc_write_condition:out std_logic;
 	instructions: out std_logic_vector(15 downto 0)
 );
 end data_path;
@@ -129,6 +130,8 @@ signal rx,ry,rz,s16: std_logic_vector(2 downto 0);
 --signal immediate_after_extension: std_logic_vector(15 downto 0);
 begin		
   PCWriteTotal<=PCWrite or PCWriteCond;
+  pc_write_observer<=PCWrite or PCWriteCond;
+  pc_write_condition<=PCWriteCond;
   immediate_from_8<=(s6(7)& s6(7)&s6(7)&s6(7)&s6(7)&s6(7)&s6(7)&s6(7)& s6(7 downto 0));
   immediate_from_5<=(s6(4)& s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)& s6(4 downto 0));
   
