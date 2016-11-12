@@ -31,6 +31,7 @@ port(	clock:	in 	std_logic;
 	SE: in std_logic;
 	data_bus: out std_logic_vector(15 downto 0);
 	--for test purpose only
+	s6_out,s9_out,s14_out: out std_logic_vector(15 downto 0);
 	s4_out,s15_out,s7_out,s1_out,s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out: out std_logic_vector(15 downto 0);
 	s16_out: out std_logic_vector(2 downto 0);
 	--for test purpose only
@@ -140,11 +141,11 @@ begin
 	s1_out<=s1;s2_out<=s2;s3_out<=s3;s8_out<=s8;s10_out<=s10;s11_out<=s11;s12_out<=s12;s13_out<=s13;
 	s15_out<=s15;s7_out<=s7;s16_out<=s16;s4_out<=s4;
 	--for test purpose only
-	
-  U_A: dflip_flop port map(clock,rst,s8,s14);
-  U_B: dflip_flop port map(clock,rst,s9,s4);
-  U_ALU_Result_Register: dflip_flop_falling port map(clock,rst,s12,s13);
-  U_DR: dflip_flop port map(clock,rst,s5,s15);
+	s6_out<=s6;s9_out<=s9;s14_out<=s14;
+  U_A: dflip_flop_falling port map(clock,rst,s8,s14);
+  U_B: dflip_flop_falling port map(clock,rst,s9,s4);
+  U_ALU_Result_Register: dflip_flop port map(clock,rst,s12,s13);
+  U_DR: dflip_flop_falling port map(clock,rst,s5,s15);
   U_Register_File: register_file port map(clock,rst,RegWrite,RegRead,s16,
   rx,ry,s7,s8,s9);
   U_ALU: alu port map(rst,s10,s11,ALUOp,s12,ALU_zero);
