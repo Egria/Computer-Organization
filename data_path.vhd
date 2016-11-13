@@ -37,7 +37,12 @@ port(	clock:	in 	std_logic;
 	--for test purpose only
 	pc_write_observer: out std_logic;
 	pc_write_condition:out std_logic;
-	instructions: out std_logic_vector(15 downto 0)
+	instructions: out std_logic_vector(15 downto 0);
+		ram1_data: inout std_logic_vector(7 downto 0);
+	tbre,tsre: in std_logic;
+	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
+	click: in std_logic
+
 );
 end data_path;
 
@@ -53,7 +58,12 @@ port ( 	clock	: 	in std_logic;
 	read_2_addr	: 	in std_logic_vector(2 downto 0);
 	write_data	: 	in std_logic_vector(15 downto 0);
 	data_to_A	: 	out std_logic_vector(15 downto 0);
-	data_to_B	:	out std_logic_vector(15 downto 0)
+	data_to_B	:	out std_logic_vector(15 downto 0);
+		ram1_data: inout std_logic_vector(7 downto 0);
+	tbre,tsre: in std_logic;
+	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
+	click: in std_logic
+
 );
 end component;
 
@@ -149,8 +159,9 @@ begin
   U_B: dflip_flop_falling port map(clock,rst,s9,s4);
   U_ALU_Result_Register: dflip_flop_falling port map(clock,rst,s12,s13);
   U_DR: dflip_flop_falling port map(clock,rst,s5,s15);
+
   U_Register_File: register_file port map(clock,rst,RegWrite,RegRead,s16,
-  rx,ry,s7,s8,s9);
+  rx,ry,s7,s8,s9,ram1_data,tbre,tsre,ram1_oe,ram1_we,ram1_en,wrn,rdn,click);
   U_ALU: alu port map(rst,s10,s11,ALUOp,s12,ALU_zero);
   U_Memory: memory port map(clock,rst,s3,s4,s5,MemRead,MemWrite);
   U_MemtoReg: multiplexor_two_bit generic map(16) port map(s13,s15,immediate_from_8,MemtoReg,s7);

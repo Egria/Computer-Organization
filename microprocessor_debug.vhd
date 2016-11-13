@@ -18,15 +18,20 @@ port(
 	led:	out std_logic_vector(15 downto 0);
 --	instruction_step_out: out std_logic_vector(2 downto 0);
    reset:		in std_logic;
-   click: in std_logic;--make sure the input is finished;
-	clock: in std_logic;
+   globalClock: in std_logic;--make sure the input is finished;
+	clock: in std_logic;--for update the led only 
 	seg1:out std_logic_vector(6 downto 0);
 	seg2:out std_logic_vector(6 downto 0);
 	button_1: in std_logic;
 	--button_1,button_2,button_3,button_4: in std_logic;
 	s16_out: out std_logic_vector(2 downto 0);
 	alu_zero_led:out std_logic;
-	pc_write_condition:out std_logic
+	pc_write_condition:out std_logic;
+		ram1_data: inout std_logic_vector(7 downto 0);
+	tbre,tsre: in std_logic;
+	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
+	click: in std_logic
+
 
 );
 
@@ -56,7 +61,12 @@ port(
 	s16_out: out std_logic_vector(2 downto 0);
 	state_code: out std_logic_vector(3 downto 0);
 	alu_zero_led:out std_logic;
-	pc_write_condition:out std_logic
+	pc_write_condition:out std_logic;
+		ram1_data: inout std_logic_vector(7 downto 0);
+	tbre,tsre: in std_logic;
+	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
+	click: in std_logic
+
 
 	--for test purpose only;
 
@@ -73,10 +83,10 @@ port(
 end component;          
 
 begin
-	MyMicroProcessor: microprocessor port map(click,reset,s5_out,s6_out,s9_out,s14_out,s4_out,s15_out,s7_out,s1_out,
+	MyMicroProcessor: microprocessor port map(globalClock,reset,s5_out,s6_out,s9_out,s14_out,s4_out,s15_out,s7_out,s1_out,
 			s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out,
 			s16_out,current_state,alu_zero_led,
-	pc_write_condition);
+	pc_write_condition,ram1_data,tbre,tsre,ram1_oe,ram1_we,ram1_en,wrn,rdn,click);
    Mybutton_1: key_processing port map (clock,reset,button_1,button_k1);
    --Mybutton_2: key_processing port map (clock,reset,button_2,button_k2);
    --Mybutton_3: key_processing port map (clock,reset,button_3,button_k3);
