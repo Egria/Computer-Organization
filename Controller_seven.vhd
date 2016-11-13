@@ -168,9 +168,16 @@ begin
 								when "01101" =>		------------OR
 									ALUSrcA <= '1';
 									ALUSrcB <= "00";
-									ALUOp <= "1010";
+									ALUOp <= "0011";
 									state <= write_reg ;
 									state_code <= "0100" ; --WB
+								when "01110" =>		------------XOR
+									ALUSrcA <= '1';
+									ALUSrcB <= "00";
+									ALUOp <= "0100";
+									state <= write_reg ;
+									state_code <= "0100" ; --WB
+
 								when "00000" =>
 									case instructions(7 downto 5) is
 										when "000" =>	------------JR
@@ -240,6 +247,11 @@ begin
 									RegDst <= "00";
 									RegWrite <= "001";
 									MemtoReg <= "00" ;
+								when "01110" =>
+									RegDst <= "00";
+									RegWrite <= "001";
+									MemtoReg <= "00" ;-------XOR
+									
 								when others =>
 									null ;
 							end case ;

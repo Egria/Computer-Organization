@@ -147,7 +147,7 @@ begin
 	s6_out<=s6;s9_out<=s9;s14_out<=s14;
   U_A: dflip_flop_falling port map(clock,rst,s8,s14);
   U_B: dflip_flop_falling port map(clock,rst,s9,s4);
-  U_ALU_Result_Register: dflip_flop port map(clock,rst,s12,s13);
+  U_ALU_Result_Register: dflip_flop_falling port map(clock,rst,s12,s13);
   U_DR: dflip_flop_falling port map(clock,rst,s5,s15);
   U_Register_File: register_file port map(clock,rst,RegWrite,RegRead,s16,
   rx,ry,s7,s8,s9);
