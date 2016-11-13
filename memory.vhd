@@ -26,10 +26,16 @@ begin
   process(clock,reset)
     begin
 	 if (reset='0') then
-				tmp_ram(0)<="1001100101001000";--r[2]<=Mem[8],LW R1 R2 8
-				tmp_ram(1)<="1101101101001111";--Mem[15]<=r[2],SW R3 R2 F
-				tmp_ram(2)<="1001100111101111";--r[7]<=Mem[15]=0x3333; LW R1 R7 F
-				tmp_ram(8)<="0011001100110011";--Mem[8]=0x3333
+tmp_ram(0)<="0000100000000000";--NOP
+tmp_ram(1)<="1001101001001010";
+tmp_ram(2)<="1110101000000000";
+tmp_ram(3)<="0000100000000000";--NOP
+tmp_ram(4)<="1110001001001001";
+tmp_ram(5)<="1110001001001001";
+tmp_ram(6)<="1110001001001001";
+tmp_ram(7)<="1101101101001011";
+tmp_ram(8)<="1001101101101011";				
+tmp_ram(10)<="0000000000000110";
 	 elsif(rising_edge(clock)) then
 	if(MemWrite='1') then
 			tmp_ram(to_integer(unsigned(address))) <= data_in;

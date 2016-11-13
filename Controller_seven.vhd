@@ -249,7 +249,7 @@ begin
 					state <= instruction_fetch ;
 					state_code <="0000"; --IF
 				when interrupt =>
-					state<=intterupt;
+					state<=interrupt;
 					state_code<="1111";
 			end case;
 		end if ;
