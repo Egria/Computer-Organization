@@ -54,29 +54,32 @@ architecture Behavioral of Controler_seven is
 
 signal bzero : std_logic ;
 type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg,interrupt);
+signal last_instruction: STD_LOGIC_VECTOR (15 downto 0);
 signal state : controler_state;
+signal is_jumped: std_logic;
 begin
 
 	
 
-	process(rst,bZero_Ctrl)
-	begin
-		if rst = '0' then
-			bzero <= '0' ;
-		elsif rising_edge(bZero_Ctrl) then
-			if bzero = '0' then
-				bzero <= '1' ;
-			elsif bzero = '1' then
-				bzero <= '0' ;
-			end if ;
-		end if ;
-	end process;
+--	process(rst,bZero_Ctrl)
+--	begin
+--		if rst = '0' then
+--			bzero <= '0' ;
+--		elsif rising_edge(bZero_Ctrl) then
+--			if bzero = '0' then
+--				bzero <= '1' ;
+--			elsif bzero = '1' then
+--				bzero <= '0' ;
+--			end if ;
+--		end if ;
+--	end process;
 	
 	
-	process(rst,clk)
+	process(rst,clk,bZero_Ctrl)
 	begin
 		if(rst = '0') then
 			PCWriteCond<='0';
+			is_jumped<='0';
 			state <= instruction_fetch;
 			state_code <= "0000"; --IF
 			IorD <= '0' ;
@@ -91,13 +94,18 @@ begin
 			PCSource <= '0' ;
 			SE <='0';
 			RegDst <= "00" ;
-				RegWrite <= "000" ;
+			RegWrite <= "000" ;
+		elsif(is_jumped='0' and state=instruction_fetch and bZero_Ctrl='1' and last_instruction(15 downto 11)="00100") then
+			PCSource <= '1' and bzero_Ctrl;
+			PCWriteCond<=bZero_Ctrl;
+			is_jumped<='1';
 		elsif falling_edge(clk) then
 			case state is
 				when instruction_fetch =>
 					MemRead <= '1' ;
 					ALUSrcA <= '0' ;
 					IorD <= '0' ;
+					is_jumped<='0';
 					ALUSrcB <= "01" ;
 					ALUOp <= "0000";
 					PCWrite <= '1' ;
@@ -105,11 +113,13 @@ begin
 					IRWrite <= '1' ;
 					RegWrite <= "000" ;
 					state <= decode ;
+					MemtoReg <= "00";
 					PCWriteCond<='0';
 					state_code <= "0001" ; --DE
 				when decode =>
 					MemRead <='0';
 					PCWrite <='0';
+					MemtoReg <= "00";
 					ALUSrcA<='0';
 					ALUSrcB<="10";
 					SE<='0';
@@ -118,6 +128,7 @@ begin
 					state_code <= "0010"; --EXE
 				when execute =>
 					IRWrite <= '0';
+					last_instruction<=instructions;
 					case instructions(15 downto 11) is 
 						when "00001" =>                         -------------Temporarily NOP
 							case instructions(10 downto 0) is 
@@ -128,10 +139,9 @@ begin
 									null;
 							end case;
 						when "00100" =>				-------------BEQZ
+							
 							ALUSrcA <= '1';
 							ALUOp <= "1010";
-							PCSource <= '1';
-							PCWriteCond<=bzero;
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
 						when "10011" =>				-------------LW	
