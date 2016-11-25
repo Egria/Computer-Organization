@@ -17,7 +17,7 @@ port(	clock:	in 	std_logic;
 	RegWrite: IN  std_logic_vector(2 downto 0);
    RegRead : IN  std_logic_vector(1 downto 0);
    MemtoReg: in std_logic_vector(1 downto 0);
-	ALUSrcA: in std_logic;
+	ALUSrcA: in std_logic_vector(1 downto 0);
 	ALUSrcB: in std_logic_vector(1 downto 0);
 	ALUOp: in std_logic_vector(3 downto 0);
 	MemRead: in std_logic;
@@ -28,25 +28,37 @@ port(	clock:	in 	std_logic;
 	PCSource: in std_logic;
 	PCWriteCond: in std_logic;
 	ALU_zero: out std_logic;
-	SE: in std_logic;
-	ram1_data: inout std_logic_vector(15 downto 0);--s5;
-	--for test purpose only
-	ram1_addr: out std_logic_vector(15 downto 0);--s3
-	s6_out,s9_out,s14_out: out std_logic_vector(15 downto 0);
-	s4_out,s15_out,s7_out,s1_out,s2_out,s8_out,s10_out,s11_out,s12_out,s13_out: out std_logic_vector(15 downto 0);
+	SE: in std_logic_vector(2 downto 0);
+	instructions: out std_logic_vector(15 downto 0);
+	ram1_data: inout std_logic_vector(15 downto 0);
+	ram1_addr: out std_logic_vector(15 downto 0);
+   data_ready: in std_logic;
+	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
+	click: in std_logic;
+	tbre,tsre: in std_logic;
+	SerialDisable: in std_logic;
+	s1_out,s2_out,s3_out,s4_out,s6_out,s7_out,s8_out,s9_out,s10_out,s11_out,s12_out,s13_out,s14_out,s15_out: out std_logic_vector(15 downto 0)
 	--s16_out: out std_logic_vector(2 downto 0);
-	--for test purpose only
-		instructions: out std_logic_vector(15 downto 0);
-
-		 Ram1OE: out std_logic;
-		 Ram1WE: out std_logic;
-		 Ram1EN: out std_logic
-
 );
 end data_path;
 
 architecture struct of data_path is
 
+component serial_buffer is
+Port(
+	clock,reset: in std_logic;
+ 	MemRead: in std_logic;
+	MemWrite: in std_logic;
+	s3: in std_logic_vector(15 downto 0);
+	s4: in std_logic_vector(15 downto 0);
+	ram1_data: inout std_logic_vector(15 downto 0);
+	ram1_addr: out std_logic_vector(15 downto 0);
+   data_ready: in std_logic;
+	tbre,tsre: in std_logic;
+	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
+	SerialDisable: in std_logic
+	);
+end component;
 component register_file is
 port ( 	clock	: 	in std_logic; 	
 	rst	: 	in std_logic;
@@ -69,21 +81,6 @@ port(
 	Sel: in std_logic_vector(3 downto 0);
 	Res:	out std_logic_vector(15 downto 0);
    Zero: out std_logic
-);
-end component;
-
-component memory is
-port(	 
-       clock: in std_logic;
-		 reset:		in std_logic;
-		 data_in: in std_logic_vector (15 downto 0);
-		 data_out:out std_logic_vector (15 downto 0);
-		 MemRead: in std_logic;
-		 MemWrite: in std_logic;
-		 Ram1OE: out std_logic;
-		 Ram1WE: out std_logic;
-		 Ram1EN: out std_logic
-
 );
 end component;
 
@@ -111,16 +108,16 @@ port(	  input_1:	in std_logic_vector(n-1 downto 0);
 		  output: out std_logic_vector(n-1 downto 0)
 );
 end component;
-
-component dflip_flop is
-port(
-      clk : in std_logic;
-      rst : in std_logic;
-      data_in : in std_logic_vector(15 downto 0);
-      data_out : out std_logic_vector(15 downto 0)
+component multiplexor_three_bit is
+generic(n:natural:=16);
+port(	  input_1:	in std_logic_vector(n-1 downto 0);
+		  input_2:	in std_logic_vector(n-1 downto 0);
+		  input_3:  in std_logic_vector(n-1 downto 0);
+		  input_4:  in std_logic_vector(n-1 downto 0);
+		  control_signal: in std_logic_vector(2 downto 0);
+		  output: out std_logic_vector(n-1 downto 0)
 );
 end component;
-
 component dflip_flop_falling is
 port(
       clk : in std_logic;
@@ -130,53 +127,57 @@ port(
 );
 end component;
 
-signal s1,s2,s4,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s17: std_logic_vector(15 downto 0); 
+signal s4,s3:std_logic_vector(15 downto 0);--ram1_data is ram1_data,ram1_addr<=s3;
+signal s1,s2,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s17: std_logic_vector(15 downto 0); 
 signal PCWriteTotal:std_logic;
-signal immediate_from_8,immediate_from_5:std_logic_vector(15 downto 0);
+signal sign_extension_of_immediate_from_8,
+	sign_extension_of_immediate_from_5,
+	unsigned_extension_of_immediate_from_8,
+	unsigned_extension_of_immediate_from_3:std_logic_vector(15 downto 0);
 signal rx,ry,rz,s16: std_logic_vector(2 downto 0);
 --signal immediate_after_extension: std_logic_vector(15 downto 0);
 begin		
   PCWriteTotal<=PCWrite or PCWriteCond;
-  --pc_write_observer<=PCWrite or PCWriteCond;
-  --pc_write_condition<=PCWriteCond;
-  immediate_from_8<=(s6(7)& s6(7)&s6(7)&s6(7)&s6(7)&s6(7)&s6(7)&s6(7)& s6(7 downto 0));
-  immediate_from_5<=(s6(4)& s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)& s6(4 downto 0));
-  
+  sign_extension_of_immediate_from_8<=(s6(7)& s6(7)&s6(7)&s6(7)&s6(7)&s6(7)&s6(7)&s6(7)& s6(7 downto 0));
+  sign_extension_of_immediate_from_5<=(s6(4)& s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)&s6(4)& s6(4 downto 0));
+  unsigned_extension_of_immediate_from_8<="00000000"&s6(7 downto 0);
+  unsigned_extension_of_immediate_from_3<="0000000000000"&s6(4 downto 2);
   rx<=s6(10 downto 8);
   ry<=s6(7 downto 5);
   rz<=s6(4 downto 2);
   instructions<=s6;
- 	--for test purpose only
+  	--for test purpose only
 	s1_out<=s1;s2_out<=s2;s8_out<=s8;s10_out<=s10;s11_out<=s11;s12_out<=s12;s13_out<=s13;
-	s15_out<=s15;s7_out<=s7;s4_out<=s4;--s16_out<=s16;
+	s15_out<=s15;s7_out<=s7;s4_out<=s4;
+	s6_out<=s6;s9_out<=s9;s14_out<=s14;s3_out<=s3;
 	--for test purpose only
-	s6_out<=s6;s9_out<=s9;s14_out<=s14;
+	U_SerialBuffer: serial_buffer port map(clock,rst,MemRead,MemWrite,
+   s3,s4,ram1_data,ram1_addr,data_ready,
+   tbre,tsre,ram1_oe,ram1_we,ram1_en,wrn,rdn,SerialDisable);
   
   
-  
-  U_A: dflip_flop_falling port map(clock,rst,s8,s14);
-  U_B: dflip_flop_falling port map(clock,rst,s9,s4);
-  U_ALU_Result_Register: dflip_flop_falling port map(clock,rst,s12,s13);
-  U_DR: dflip_flop_falling port map(clock,rst,ram1_data,s15);
+	
+  U_A: dflip_flop_falling port map(click,rst,s8,s14);
+  U_B: dflip_flop_falling port map(click,rst,s9,s4);
+  U_ALU_Result_Register: dflip_flop_falling port map(click,rst,s12,s13);
+  U_DR: dflip_flop_falling port map(click,rst,ram1_data,s15);
 
-  U_Register_File: register_file port map(clock,rst,RegWrite,RegRead,s16,
+  U_Register_File: register_file port map(click,rst,RegWrite,RegRead,s16,
   rx,ry,s7,s8,s9);
   U_ALU: alu port map(rst,s10,s11,ALUOp,s12,ALU_zero);
-  U_Memory: memory port map(clock,rst,s4,ram1_data,MemRead,MemWrite,Ram1OE,Ram1WE,Ram1EN);
-  U_MemtoReg: multiplexor_two_bit generic map(16) port map(s13,s15,immediate_from_8,MemtoReg,s7);
-  U_ALUSrcA: multiplexor port map(s2,s14,ALUSrcA,s10);
-  U_IorD: multiplexor port map(s2,s13,IorD,ram1_addr);
-  U_SE: multiplexor port map(immediate_from_8,immediate_from_5,SE,s17);
+  U_MemtoReg: multiplexor_two_bit generic map(16) port map(s12,s15,unsigned_extension_of_immediate_from_8,MemtoReg,s7);
+  U_ALUSrcA: multiplexor_two_bit generic map(16) port map(s2,s14,s4,ALUSrcA,s10);
+  U_IorD: multiplexor port map(s2,s13,IorD,s3);
+  U_SE: multiplexor_three_bit port map(sign_extension_of_immediate_from_8,
+  sign_extension_of_immediate_from_5,
+  unsigned_extension_of_immediate_from_8,
+  unsigned_extension_of_immediate_from_3,SE,s17);
   U_PCSource: multiplexor port map(s12,s13,PCSource,s1);
-  U_IR: single_register port map(clock,rst,IRWrite,ram1_data,s6);
-  U_PC: single_register port map(clock,rst,PCWriteTotal,s1,s2);
+  U_IR: single_register port map(click,rst,IRWrite,ram1_data,s6);
+  U_PC: single_register port map(click,rst,PCWriteTotal,s1,s2);
   U_RegDst: multiplexor_two_bit generic map(3) port map(rx,rz,ry,RegDst,s16);
   U_ALUSrcB: multiplexor_two_bit generic map(16) port map(s4,"0000000000000001",s17,ALUSrcB,s11);
 end struct;
-
-
-
-
 
 
 
