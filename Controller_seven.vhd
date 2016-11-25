@@ -31,7 +31,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Controler_seven is
     Port ( rst : in  STD_LOGIC;
-           clk : in  STD_LOGIC;
+           clk : in  STD_LOGIC;--one step clock
            instructions : in  STD_LOGIC_VECTOR (15 downto 0);
 			  PCWrite,PCWriteCond,PCSource: out std_logic ;
 			  ALUOp : out std_logic_vector(3 downto 0) ;
@@ -45,6 +45,7 @@ entity Controler_seven is
 			  RegDst : out std_logic_vector(1 downto 0) ;
 			  IorD : out std_logic;
 			  SE: out std_logic_vector(2 downto 0);
+			  SerialDisable: out std_logic;
 			  bZero_ctrl: in std_logic;
 			  state_code: out std_logic_vector(3 downto 0)
 );
@@ -73,9 +74,10 @@ begin
 			ALUSrcA <= "00" ;
 			ALUSrcB <= "00" ;
 			PCWrite <= '0' ;
-			SE<="000";  -------------N/A = 0, unsigned = 1;(???? 8¦Ë???????0??5¦Ë???????1
+			SE<="000";  
 			RegDst <= "00" ;
 			RegWrite <= "000" ;
+			SerialDisable<='0';
 		elsif falling_edge(clk) then
 			case state is
 				when instruction_fetch =>
@@ -90,6 +92,7 @@ begin
 					state <= decode ;
 					MemtoReg <= "00";
 					state_code <= "0001" ; --DE
+					SerialDisable<='1';
 				when decode =>
 					MemRead <= '0';
 					PCWrite <= '0';
@@ -104,13 +107,13 @@ begin
 					case instructions(15 downto 11) is 
 						when "00001" =>                         -------------Temporarily NOP
 							case instructions(10 downto 0) is 
-								when "00000000000" =>   -------------NOP
+								when "00000000000" =>   -------------NOP ok
 									state<=instruction_fetch;
 									state_code<="0000"; --IF
 								when others=>
 									null;
 							end case;
-                  when "00010" =>             -------------B
+                  when "00010" =>             -------------B ok
                      ALUSrcA <= "00";
 							ALUSrcB <= "10";
 							ALUOp <= "0000" ;
@@ -118,7 +121,7 @@ begin
 							--SE <= '0'; --11¦Ëimmediate??????????
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
-						when "00100" =>				-------------BEQZ
+						when "00100" =>				-------------BEQZ  ok
 							ALUSrcA <= "01";        
 							ALUOp <= "1010";
 							state <= instruction_fetch ;
@@ -128,28 +131,28 @@ begin
 							ALUOp <= "1010";
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF   
-                  when "01101" =>							-------------LI
-									SE<="010";
-									MemtoReg<="10";
-									RegDst <= "00";
-									RegWrite <= "001";
+                  when "01101" =>							-------------LI ok
+							SE<="010";
+							MemtoReg<="10";
+							RegDst <= "00";
+							RegWrite <= "001";
                      state <= instruction_fetch;
 							state_code <= "0000"; --WB  
                   when "10010" =>             -------------LW_SP
-                            				ALUSrcA <= "01";
-                            				ALUSrcB <= "10" ;
-                            				ALUOp <= "0000" ;  
+                     ALUSrcA <= "01";
+                     ALUSrcB <= "10" ;
+                     ALUOp <= "0000" ;  
 							SE <="000";  ----????1????????0??8¦Ë????????0??¦Ä??????
 							state <= mem_control ;
 							state_code <= "0011" ; --MEM
-						when "10011" =>				-------------LW	
+						when "10011" =>				-------------LW	ok
 							ALUSrcA <= "01" ;
 							ALUSrcB <= "10" ;
 							ALUOp <= "0000" ;  
 							SE<="001";
 							state <= mem_control ;
 							state_code <= "0011" ; --MEM
-						when "11011" =>				-------------SW	
+						when "11011" =>				-------------SW	ok
 							ALUSrcA <= "01";
 							ALUSrcB <= "10" ;
 							SE<="001";							
@@ -157,25 +160,25 @@ begin
 							SE <="000";   
 							state <= mem_control ;
 							state_code <= "0011"; --MEM
-						when "11100" =>						
+						when "11100" =>					
 									RegDst <= "01";
 									RegWrite <= "001" ;	
 									MemToReg<="00";
 									state_code <= "0000";
 									state<=instruction_fetch;
 							case instructions(1 downto 0) is
-								when "01" =>			-------------ADDU
+								when "01" =>			-------------ADDU   ok
 									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "0000" ;
-								when "11" =>			-------------SUBU
+								when "11" =>			-------------SUBU   ok
 									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "0001" ;
 								when others =>
 									null ;
 							end case ;
-						when "01001" =>				------------ADDIU
+						when "01001" =>				------------ADDIU   ok
 							ALUSrcA <= "01";
 							ALUSrcB <= "10";
 							ALUOp <= "0000";
@@ -185,7 +188,7 @@ begin
 							state <= instruction_fetch;
 							state_code <= "0000";
                   when "01000" =>				------------ADDIU3
-                            				ALUSrcA <= "01";
+                     ALUSrcA <= "01";
 							ALUSrcB <= "10";
 							ALUOp <= "0000";
 							SE <= "001";					
@@ -220,61 +223,68 @@ begin
                                     					null;
 							 end case;
 						 when "11101" =>
-								 RegDst <= "00";
-								 RegWrite <= "001";
-								 MemtoReg <= "00" ;
 								 state<=instruction_fetch;
 								 state_code<="0000";
 							 case instructions(4 downto 0) is 
-								when "01101" =>		------------OR
+								when "01101" =>		------------OR    ok
+									RegDst <= "00";
+								   RegWrite <= "001";
+								   MemtoReg <= "00" ;
 									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "0011";
-								when "01110" =>		------------XOR
+								when "01110" =>		------------XOR   ok
+									RegDst <= "00";
+								   RegWrite <= "001";
+								   MemtoReg <= "00" ;
 									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "0100";
-								when "00000" =>
-									case instructions(7 downto 5) is
-										when "000" =>	------------JR
-											ALUSrcA<="01";
-											ALUOp<="1010";
-											PCWrite <= '1';
-                             when "010" =>  ------------MFPC
-											ALUSrcA <= "00";
-											ALUOp <= "1010"; 
-								 when others =>
-											null ;
-								end case;
-                  when "01100" =>			------------AND
-                                					ALUSrcA <= "01";
+								when "01100" =>		------------AND   ok
+									RegDst <= "00";
+								   RegWrite <= "001";
+								   MemtoReg <= "00" ;
+									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "0010";
-									state <= write_reg ;
-									state_code <= "0100" ; --WB
-                  when "01010" =>			------------CMP
+								when "01010" =>		------------CMP
                            ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "0001";
 									state <= write_reg ;
 									state_code <= "0100" ; --WB
-                  when "00010" =>			-------------SLLV
-                           ALUSrcA <= "01";
+								when "00010" =>			-------------SLLV
+                           RegDst <= "10";
+								   RegWrite <= "001";
+								   MemtoReg <= "00" ;
+									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "1100";
 									state <= write_reg ;
 									state_code <= "0100" ; --WB
-                  when "00011" =>			-------------SLTU
-                                   					ALUSrcA <= "01";
+								when "00011" =>			-------------SLTU
+                           ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "0001";
 									state <= write_reg ;
 									state_code <= "0100" ; --WB
-						when others =>
+								when "00000" =>
+									case instructions(7 downto 5) is
+										when "000" =>	------------JR   ok
+											ALUSrcA<="01";
+											ALUOp<="1010";
+											PCWrite <= '1';
+                             when "010" =>  ------------MFPC  ok
+											ALUSrcA <= "00";
+											ALUOp <= "1010"; 
+										when others =>
+										null ;
+									end case;
+								when others =>
 									null ;
-							end case ;
-                        			when "01110" =>        --------------CMPI
-                            				ALUSrcA <= "01";
+								end case ;
+                  when "01110" =>        --------------CMPI
+                     ALUSrcA <= "01";
 							ALUSrcB <= "10";
 							ALUOp <= "0001";
 							state <= write_reg ;
@@ -283,29 +293,29 @@ begin
 							state <= interrupt;
 							state_code <= "1111";
 						when "11110"=>
-                            				case instructions(1 downto 0) is
-                            					when "00" =>		-----------MFIH
-                            						ALUSrcA <= "01";
-									ALUSrcB <= "01";
-									ALUOp <= "1010"; --?A
-									state <= write_reg ;
-									state_code <= "0100" ; --WB
-                                				when "01" =>		-----------MTIH
-                                    					ALUSrcA <= "01";
-									ALUSrcB <= "01";
-									ALUOp <= "1010"; --?A
-									state <= write_reg ;
-									state_code <= "0100" ; --WB
-                                				when others =>
-                                    					null;
-                             				end case;
-                        			when "01111" => 			------------MOVE
-                            				ALUSrcA <= "00";
+                           case instructions(1 downto 0) is
+                            when "00" =>		-----------MFIH
+                            		ALUSrcA <= "01";
+											ALUSrcB <= "01";
+											ALUOp <= "1010"; --?A
+											state <= write_reg ;
+											state_code <= "0100" ; --WB
+                            when "01" =>		-----------MTIH
+                                 ALUSrcA <= "01";
+											ALUSrcB <= "01";
+											ALUOp <= "1010"; --?A
+											state <= write_reg ;
+											state_code <= "0100" ; --WB
+                            when others =>
+                                 null;
+                           end case;
+                   when "01111" => 			------------MOVE
+                     ALUSrcA <= "00";
 							ALUSrcB <= "00";
 							ALUOp <= "1011";
 							state <= write_reg ;
 							state_code <= "0100" ; --WB
-                    when "00110" =>
+                   when "00110" =>
                            RegDst <= "00";
 									RegWrite <= "001";
 									MemtoReg <= "00" ; 
@@ -315,12 +325,12 @@ begin
 									ALUSrcB <= "10";
 									SE <= "011";  
                     if(instructions(1 downto 0)="00") then
-                   			ALUOp <= "0110";------------SLL
+                   			ALUOp <= "0110";------------SLL  ok
 						  else	------------SRA
 									ALUOp <= "1000";
-						   end if;
-							when "11010" =>		------------SW_SP
-                            				ALUSrcA <= "01";
+						  end if;
+						when "11010" =>		------------SW_SP
+                     ALUSrcA <= "01";
 							ALUSrcB <= "10";
 							ALUOp <= "0000";
 							state <= mem_control ;
@@ -392,28 +402,20 @@ begin
 							end case;
 						when "11101" =>
 							case instructions(4 downto 0) is
-                        when "01100" =>		------------AND
-									RegDst <= "00";
-									RegWrite <= "001";
-									MemtoReg <= "00" ; 
 								when "01010" =>		------------CMP
 									RegWrite <= "011";
 									MemtoReg <= "00" ; 
 								when "00000" =>		------------MFPC
-                                    					RegDst <= "00";
+                           RegDst <= "00";
 									RegWrite <= "001";
 									MemtoReg <= "00" ;
-                                				when "00010" =>		-------------SLLV
-                                    					RegDst <= "10";
-									RegWrite <= "001";
-									MemtoReg <= "00" ;
-                                				when "00011" =>			-------------SLTU
+                        when "00011" =>			-------------SLTU
 									RegWrite <= "011";
 									MemtoReg <= "00" ;
 								when others =>
 									null ;
 							end case ;
-                        			when "01110" =>        --------------CMPI
+                    when "01110" =>        --------------CMPI
 							RegWrite <= "011";
 							MemtoReg <= "00" ;
 						when "11110" =>
@@ -468,5 +470,7 @@ begin
 		 end case;
 		end if;
 	end process;
+
+
 
 end Behavioral;
