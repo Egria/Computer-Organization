@@ -64,10 +64,13 @@ begin
 					when "1000" =>--arithmetic shift right
 						result_middle :=std_logic_vector(SHIFT_RIGHT(signed(input_1),to_integer(signed(input_2))));
 					when "1001"=>--rotate left,B can be negative in two's complement;
-					 	  
 						result_middle :=std_logic_vector(unsigned(input_1) rol to_integer(signed(input_2)));
+					when "1100"=>--rotate left, Ry<<Rx
+						result_middle :=std_logic_vector(unsigned(input_2) rol to_integer(signed(input_1)));
 					when "1010"=>
 						result_middle :=input_1;
+					when "1011"= >
+						result_middle :=input_2;
 					when others =>	 
 						result_middle := (input_1'range =>'0');
 				end case;
