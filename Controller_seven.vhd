@@ -118,7 +118,7 @@ begin
 							ALUSrcB <= "10";
 							ALUOp <= "0000" ;
                      PCWrite <= '1';
-							--SE <= '0'; --11¦Ëimmediate??????????
+							--SE <= '0'; --11Â¦Ã‹immediate??????????
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
 						when "00100" =>				-------------BEQZ  ok
@@ -127,7 +127,7 @@ begin
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
                   when "00101" =>				-------------BNEZ
-                     ALUSrcA <= "00";         -------------??§Ô???BEQZ????????????
+                     ALUSrcA <= "00";         -------------??Â§Ã”???BEQZ????????????
 							ALUOp <= "1010";
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF   
@@ -142,7 +142,7 @@ begin
                      ALUSrcA <= "01";
                      ALUSrcB <= "10" ;
                      ALUOp <= "0000" ;  
-							SE <="000";  ----????1????????0??8¦Ë????????0??¦Ä??????
+							SE <="000";  ----????1????????0??8Â¦Ã‹????????0??Â¦Ã„??????
 							state <= mem_control ;
 							state_code <= "0011" ; --MEM
 						when "10011" =>				-------------LW	ok
@@ -210,7 +210,7 @@ begin
 									state_code <= "0100"; --WB
 								when "000" =>       ------------BTEQZ
                            ALUSrcA <= "00";
-									ALUOp <= "1010"; ------------??§Ô???BEQZ????????????
+									ALUOp <= "1010"; ------------??Â§Ã”???BEQZ????????????
                            state <= instruction_fetch ;
 									state_code <= "0000" ; --IF
                                 				when "100" =>		------------MTSP
@@ -253,7 +253,7 @@ begin
 									ALUOp <= "0001";
 									state <= write_reg ;
 									state_code <= "0100" ; --WB
-								when "00010" =>			-------------SLLV
+								when "00100" =>			-------------SLLV
                            RegDst <= "10";
 								   RegWrite <= "001";
 								   MemtoReg <= "00" ;
@@ -435,7 +435,7 @@ begin
 							RegWrite <= "001";
 							MemtoReg <= "00" ; 
                   when "11010" =>				------------SW_SP
-                            				MemWrite <= '0' ; --??§Ô???SW?????????????
+                            				MemWrite <= '0' ; --??Â§Ã”???SW?????????????
 							IorD <= '0' ;
 						when others =>
 							null ;
