@@ -38,18 +38,13 @@ port(
 	--seg1: out std_logic_vector(7 downto 0);
 	--seg2: out std_logic_vector(7 downto 0)
 	--for test purpose only;
-	s6_out,s9_out,s14_out: out std_logic_vector(15 downto 0);
+	s6_out,s9_out,s14_out,s17_out: out std_logic_vector(15 downto 0);
 	s4_out,s15_out,s7_out,s1_out,s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out: out std_logic_vector(15 downto 0);
 	s16_out: out std_logic_vector(2 downto 0);	
 	state_code: out std_logic_vector(3 downto 0);
 	alu_zero_led:out std_logic;
 	pc_write_condition:out std_logic;
-	pc_write_observer: out std_logic;
-		ram1_data: inout std_logic_vector(7 downto 0);
-	tbre,tsre: in std_logic;
-	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
-	click: in std_logic
-
+	pc_write_observer: out std_logic
 
 );
 
@@ -63,7 +58,7 @@ port(	clock:	in 	std_logic;
 	RegWrite: IN  std_logic_vector(2 downto 0);
    RegRead : IN  std_logic_vector(1 downto 0);
    MemtoReg: in std_logic_vector(1 downto 0);
-	ALUSrcA: in std_logic;
+	ALUSrcA: in std_logic_vector(1 downto 0);
 	ALUSrcB: in std_logic_vector(1 downto 0);
 	ALUOp: in std_logic_vector(3 downto 0);
 	MemRead: in std_logic;
@@ -74,21 +69,16 @@ port(	clock:	in 	std_logic;
 	PCSource: in std_logic;
 	PCWriteCond: in std_logic;
 	ALU_zero: out std_logic;
-	SE: in std_logic;
+	SE: in std_logic_vector(2 downto 0);
 	data_bus: out std_logic_vector(15 downto 0);
 	--for test purpose only;
-		s6_out,s9_out,s14_out: out std_logic_vector(15 downto 0);
+		s6_out,s9_out,s14_out,s17_out: out std_logic_vector(15 downto 0);
 	s4_out,s15_out,s7_out,s1_out,s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out: out std_logic_vector(15 downto 0);
 	s16_out: out std_logic_vector(2 downto 0);
 	--for test purpose only;
 	pc_write_observer: out std_logic;
 		pc_write_condition:out std_logic;
-	instructions: out std_logic_vector(15 downto 0);
-		ram1_data: inout std_logic_vector(7 downto 0);
-	tbre,tsre: in std_logic;
-	ram1_oe,ram1_we,ram1_en,wrn,rdn: out std_logic;
-	click: in std_logic
-
+	instructions: out std_logic_vector(15 downto 0)
 );
 end component;
 
@@ -98,7 +88,7 @@ component Controler_seven is
            instructions : in  STD_LOGIC_VECTOR (15 downto 0);
 			  PCWrite,PCWriteCond,PCSource: out std_logic ;
 			  ALUOp : out std_logic_vector(3 downto 0) ;
-			  ALUSrcA : out std_logic ;
+			  ALUSrcA : out std_logic_vector(1 downto 0) ;
 			  ALUSrcB : out std_logic_vector(1 downto 0) ;
 			  MemRead : out std_logic ;
 			  MemWrite : out std_logic ;
@@ -107,16 +97,17 @@ component Controler_seven is
 			  RegWrite : out std_logic_vector(2 downto 0) ;
 			  RegDst : out std_logic_vector(1 downto 0) ;
 			  IorD : out std_logic;
-			  SE: out std_logic;
+				SE: out std_logic_vector(2 downto 0);
 			  bZero_ctrl: in std_logic;
 			  state_code: out std_logic_vector(3 downto 0)
 			);
 end component;
 
 signal RegDst,RegRead,ALUSrcB: std_logic_vector(1 downto 0);
-signal ALUSrcA,MemRead,MemWrite,IorD,IRWrite,
-	PCWrite,PCSource,PCWriteCond,ALU_zero,SE:std_logic;
-signal MemtoReg:std_logic_vector(1 downto 0);
+signal SE:std_logic_vector(2 downto 0);
+signal MemRead,MemWrite,IorD,IRWrite,
+	PCWrite,PCSource,PCWriteCond,ALU_zero:std_logic;
+signal MemtoReg,ALUSrcA:std_logic_vector(1 downto 0);
 signal RegWrite: std_logic_vector(2 downto 0);
 signal ALUOp: std_logic_vector(3 downto 0);
 signal instructions: std_logic_vector(15 downto 0);
@@ -124,10 +115,10 @@ begin
 alu_zero_led<=alu_zero;
 U_DATA_PATH: data_path port map(clock,rst,RegDst,RegWrite,RegRead,MemtoReg,ALUSrcA,
 	ALUSrcB,ALUOp,MemRead,MemWrite,IorD,IRWrite,PCWrite,PCSource,PCWriteCond,ALU_zero,
-	SE,data_bus_observer,s6_out,s9_out,s14_out,s4_out,s15_out,s7_out,s1_out,
+	SE,data_bus_observer,s6_out,s9_out,s14_out,s17_out,s4_out,s15_out,s7_out,s1_out,
 	s2_out,s3_out,s8_out,s10_out,s11_out,s12_out,s13_out,
 	s16_out,	pc_write_observer,pc_write_condition,
-	instructions,ram1_data,tbre,tsre,ram1_oe,ram1_we,ram1_en,wrn,rdn,click);
+	instructions);
 	
 
 U_Controler_Seven: Controler_seven port map(rst,clock,instructions,
