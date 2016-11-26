@@ -116,7 +116,7 @@ begin
 								when others=>
 									null;
 							end case;
-                  when "00010" =>             -------------B ok
+                  when "00010" =>             -------------B 
                      ALUSrcA <= "00";
 							ALUSrcB <= "10";
 							ALUOp <= "0000" ;
@@ -142,10 +142,11 @@ begin
                      state <= instruction_fetch;
 							state_code <= "0000"; --WB  
                   when "10010" =>             -------------LW_SP
-                     ALUSrcA <= "01";
+                     RegRead<="10";
+							ALUSrcA <= "01";
                      ALUSrcB <= "10" ;
                      ALUOp <= "0000" ;  
-							SE <="000";  ----????1????????0??8¦Ë????????0??¦Ä??????
+							SE <="000";  
 							state <= mem_control ;
 							state_code <= "0011" ; --MEM
 						when "10011" =>				-------------LW	ok
@@ -361,8 +362,8 @@ begin
 					PCWrite <= '0' ;
 					RegWrite <= "000" ;
 					case instructions(15 downto 11) is 
-                        			when "10010" =>				-------------LW_SP
-                        				MemRead <= '1' ;
+                     when "10010" =>				-------------LW_SP
+                     MemRead <= '1' ;
 							IorD <= '1' ;
 							state <= write_reg ;
 							state_code <= "0100"; --WB
