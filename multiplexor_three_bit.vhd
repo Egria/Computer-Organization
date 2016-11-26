@@ -19,6 +19,7 @@ port(	  input_1:	in std_logic_vector(n-1 downto 0);--MSB of A,B are sign bits.
 		  input_2:	in std_logic_vector(n-1 downto 0);
 		  input_3:  in std_logic_vector(n-1 downto 0);
 		  input_4:  in std_logic_vector(n-1 downto 0);
+		  input_5:  in std_logic_vector(n-1 downto 0);
 		  control_signal: in std_logic_vector(2 downto 0);
 		  output: out std_logic_vector(n-1 downto 0)--make sure the input is finished;
 );
@@ -35,6 +36,7 @@ begin
             when "001" =>    output <= input_2;
 				when "010" => output<= input_3;
 				when "011" => output<= input_4;
+				when "100" => output<= input_5;
 			   when others =>	output <= input_1;
         end case;
     end process;
