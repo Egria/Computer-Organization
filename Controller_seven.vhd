@@ -189,11 +189,14 @@ begin
 							MemtoReg <= "00" ;
 							state <= instruction_fetch;
 							state_code <= "0000";
-                  when "01000" =>				------------ADDIU3
+                  when "01000" =>				------------ADDIU3   ok
                      ALUSrcA <= "01";
 							ALUSrcB <= "10";
 							ALUOp <= "0000";
-							SE <= "001";					
+							SE <= "100";
+							RegWrite<="001";
+							RegDst<="10";
+							MemtoReg<="00";
 							state <= write_reg;
 							state_code <= "0100"; --WB
                   when "00000" =>				------------ADDSP3   ok
