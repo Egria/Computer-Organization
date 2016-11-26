@@ -47,7 +47,8 @@ entity Controler_seven is
 			  SE: out std_logic_vector(2 downto 0);
 			  SerialDisable: out std_logic;
 			  bZero_ctrl: in std_logic;
-			  state_code: out std_logic_vector(3 downto 0)
+			  state_code: out std_logic_vector(3 downto 0);
+			  RegRead: out std_logic_vector(1 downto 0)
 );
 end Controler_seven;
 
@@ -78,6 +79,7 @@ begin
 			RegDst <= "00" ;
 			RegWrite <= "000" ;
 			SerialDisable<='0';
+			RegRead<="00";
 		elsif falling_edge(clk) then
 			case state is
 				when instruction_fetch =>
@@ -93,6 +95,7 @@ begin
 					MemtoReg <= "00";
 					state_code <= "0001" ; --DE
 					SerialDisable<='1';
+					RegRead<="00";
 				when decode =>
 					MemRead <= '0';
 					PCWrite <= '0';
@@ -292,18 +295,24 @@ begin
 							state_code <= "1111";
 						when "11110"=>
                            case instructions(1 downto 0) is
-                            when "00" =>		-----------MFIH
+                            when "00" =>		-----------MFIH       ok
                             		ALUSrcA <= "01";
 											ALUSrcB <= "01";
-											ALUOp <= "1010"; --?A
-											state <= write_reg ;
-											state_code <= "0100" ; --WB
-                            when "01" =>		-----------MTIH
+											RegRead<="11";
+											ALUOp <= "1010"; --A
+											RegDst <= "00";
+											RegWrite <= "001";
+											MemtoReg <= "00" ;
+											state <= instruction_fetch ;
+											state_code <= "0000" ; 
+                            when "01" =>		-----------MTIH        ok
                                  ALUSrcA <= "01";
 											ALUSrcB <= "01";
-											ALUOp <= "1010"; --?A
-											state <= write_reg ;
-											state_code <= "0100" ; --WB
+											ALUOp <= "1010"; --A
+											RegWrite <= "101";
+											MemtoReg <= "00" ; 
+											state <= instruction_fetch ;
+											state_code <= "0000" ;
                             when others =>
                                  null;
                            end case;
@@ -419,18 +428,6 @@ begin
                     when "01110" =>        --------------CMPI
 							RegWrite <= "011";
 							MemtoReg <= "00" ;
-						when "11110" =>
-                            				case instructions(1 downto 0) is
-                            					when "00" =>		-----------MFIH
-                            						RegDst <= "00";
-									RegWrite <= "001";
-									MemtoReg <= "00" ; 
-                                				when "01" =>		-----------MTIH
-                                    					RegWrite <= "101";
-									MemtoReg <= "00" ; 
-                                				when others =>
-                                    					null;
-                             				end case;
                   when "11010" =>				------------SW_SP
                             				MemWrite <= '0' ; --??§Ô???SW?????????????
 							IorD <= '0' ;
