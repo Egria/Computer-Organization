@@ -115,6 +115,7 @@ port(	  input_1:	in std_logic_vector(n-1 downto 0);
 		  input_3:  in std_logic_vector(n-1 downto 0);
 		  input_4:  in std_logic_vector(n-1 downto 0);
 		  input_5:  in std_logic_vector(n-1 downto 0);
+		  input_6:  in std_logic_vector(n-1 downto 0);
 		  control_signal: in std_logic_vector(2 downto 0);
 		  output: out std_logic_vector(n-1 downto 0)
 );
@@ -135,7 +136,8 @@ signal sign_extension_of_immediate_from_8,
 	sign_extension_of_immediate_from_5,
 	unsigned_extension_of_immediate_from_8,
 	unsigned_extension_of_immediate_from_3,
-	sign_extension_of_immediate_from_4:std_logic_vector(15 downto 0);
+	sign_extension_of_immediate_from_4,
+	sign_extension_of_immediate_from_11:std_logic_vector(15 downto 0);
 signal rx,ry,rz,s16: std_logic_vector(2 downto 0);
 --signal immediate_after_extension: std_logic_vector(15 downto 0);
 begin		
@@ -145,6 +147,7 @@ begin
   unsigned_extension_of_immediate_from_8<="00000000"&s6(7 downto 0);
   unsigned_extension_of_immediate_from_3<="0000000000000"&s6(4 downto 2);
   sign_extension_of_immediate_from_4<=(s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3)&s6(3 downto 0));
+  sign_extension_of_immediate_from_11<=(s6(10)&s6(10)&s6(10)&s6(10)&s6(10)&s6(10 downto 0));
   rx<=s6(10 downto 8);
   ry<=s6(7 downto 5);
   rz<=s6(4 downto 2);
@@ -175,7 +178,8 @@ begin
   sign_extension_of_immediate_from_5,
   unsigned_extension_of_immediate_from_8,
   unsigned_extension_of_immediate_from_3,
-  sign_extension_of_immediate_from_4,SE,s17);
+  sign_extension_of_immediate_from_4,
+  sign_extension_of_immediate_from_11,SE,s17);
   U_PCSource: multiplexor port map(s12,s13,PCSource,s1);
   U_IR: single_register port map(click,rst,IRWrite,ram1_data,s6);
   U_PC: single_register port map(click,rst,PCWriteTotal,s1,s2);
