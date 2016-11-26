@@ -118,7 +118,7 @@ begin
 							ALUSrcB <= "10";
 							ALUOp <= "0000" ;
                      PCWrite <= '1';
-							--SE <= '0'; --11Â¦Ã‹immediate??????????
+							--SE <= '0'; --11¦Ëimmediate??????????
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
 						when "00100" =>				-------------BEQZ  ok
@@ -127,7 +127,7 @@ begin
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
                   when "00101" =>				-------------BNEZ
-                     ALUSrcA <= "00";         -------------??Â§Ã”???BEQZ????????????
+                     ALUSrcA <= "00";         -------------??§Ô???BEQZ????????????
 							ALUOp <= "1010";
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF   
@@ -142,7 +142,7 @@ begin
                      ALUSrcA <= "01";
                      ALUSrcB <= "10" ;
                      ALUOp <= "0000" ;  
-							SE <="000";  ----????1????????0??8Â¦Ã‹????????0??Â¦Ã„??????
+							SE <="000";  ----????1????????0??8¦Ë????????0??¦Ä??????
 							state <= mem_control ;
 							state_code <= "0011" ; --MEM
 						when "10011" =>				-------------LW	ok
@@ -210,7 +210,7 @@ begin
 									state_code <= "0100"; --WB
 								when "000" =>       ------------BTEQZ
                            ALUSrcA <= "00";
-									ALUOp <= "1010"; ------------??Â§Ã”???BEQZ????????????
+									ALUOp <= "1010"; ------------??§Ô???BEQZ????????????
                            state <= instruction_fetch ;
 									state_code <= "0000" ; --IF
                                 				when "100" =>		------------MTSP
@@ -253,15 +253,13 @@ begin
 									ALUOp <= "0001";
 									state <= write_reg ;
 									state_code <= "0100" ; --WB
-								when "00100" =>			-------------SLLV
+								when "00100" =>			-------------SLLV    ok
                            RegDst <= "10";
 								   RegWrite <= "001";
 								   MemtoReg <= "00" ;
 									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "1100";
-									state <= write_reg ;
-									state_code <= "0100" ; --WB
 								when "00011" =>			-------------SLTU
                            ALUSrcA <= "01";
 									ALUSrcB <= "00";
@@ -309,12 +307,15 @@ begin
                             when others =>
                                  null;
                            end case;
-                   when "01111" => 			------------MOVE
+                   when "01111" => 			------------MOVE    ok
                      ALUSrcA <= "00";
 							ALUSrcB <= "00";
 							ALUOp <= "1011";
-							state <= write_reg ;
-							state_code <= "0100" ; --WB
+							RegDst<="00";
+							RegWrite<="001";
+							MemtoReg<="00";
+							state <= instruction_fetch ;
+							state_code <= "0000" ; 
                    when "00110" =>
                            RegDst <= "00";
 									RegWrite <= "001";
@@ -326,7 +327,7 @@ begin
 									SE <= "011";  
                     if(instructions(1 downto 0)="00") then
                    			ALUOp <= "0110";------------SLL  ok
-						  else	------------SRA
+						  else	------------SRA    ok
 									ALUOp <= "1000";
 						  end if;
 						when "11010" =>		------------SW_SP
@@ -430,12 +431,8 @@ begin
                                 				when others =>
                                     					null;
                              				end case;
-                        			when "01111" =>				------------MOVE
-                            				RegDst <= "00";
-							RegWrite <= "001";
-							MemtoReg <= "00" ; 
                   when "11010" =>				------------SW_SP
-                            				MemWrite <= '0' ; --??Â§Ã”???SW?????????????
+                            				MemWrite <= '0' ; --??§Ô???SW?????????????
 							IorD <= '0' ;
 						when others =>
 							null ;

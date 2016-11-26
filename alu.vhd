@@ -62,14 +62,18 @@ begin
 					when "0111" =>--logic shift right
 						result_middle := std_logic_vector(unsigned(input_1) srl to_integer(unsigned(input_2)));
 					when "1000" =>--arithmetic shift right
+						if(input_2=(input_2'range =>'0')) then
+						result_middle :=std_logic_vector(SHIFT_RIGHT(signed(input_1),8));
+						else
 						result_middle :=std_logic_vector(SHIFT_RIGHT(signed(input_1),to_integer(signed(input_2))));
+						end if;
 					when "1001"=>--rotate left,B can be negative in two's complement;
 						result_middle :=std_logic_vector(unsigned(input_1) rol to_integer(signed(input_2)));
 					when "1100"=>--rotate left, Ry<<Rx
-						result_middle :=std_logic_vector(unsigned(input_2) rol to_integer(signed(input_1)));
+						result_middle :=std_logic_vector(unsigned(input_2) sll to_integer(signed(input_1)));
 					when "1010"=>
 						result_middle :=input_1;
-					when "1011"= >
+					when "1011"=>
 						result_middle :=input_2;
 					when others =>	 
 						result_middle := (input_1'range =>'0');
