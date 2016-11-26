@@ -159,8 +159,7 @@ begin
 							ALUSrcA <= "01";
 							ALUSrcB <= "10" ;
 							SE<="001";							
-							ALUOp <= "0000" ;
-							SE <="000";   
+							ALUOp <= "0000" ;   
 							state <= mem_control ;
 							state_code <= "0011"; --MEM
 						when "11100" =>					
@@ -197,7 +196,7 @@ begin
 							SE <= "001";					
 							state <= write_reg;
 							state_code <= "0100"; --WB
-                  when "00000" =>				------------ADDSP3
+                  when "00000" =>				------------ADDSP3   ok
 							RegRead <="10";
                      ALUSrcA <= "01";
 							ALUSrcB <= "10";
