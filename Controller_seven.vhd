@@ -197,33 +197,38 @@ begin
 							SE <= "001";					
 							state <= write_reg;
 							state_code <= "0100"; --WB
-                        			when "00000" =>				------------ADDSP3
-                            				ALUSrcA <= "01";
+                  when "00000" =>				------------ADDSP3
+                     ALUSrcA <= "01";
 							ALUSrcB <= "10";
 							ALUOp <= "0000";
 							state <= write_reg;
 							state_code <= "0100"; --WB
-                        			when "01100" =>				
-                             				case instructions(10 downto 8) is
-                                				when "011" =>		------------ADDSP
-                                					ALUSrcA <= "01";
+                  when "01100" =>				
+                     case instructions(10 downto 8) is
+                        when "011" =>		------------ADDSP
+									RegRead <= "10";
+                           ALUSrcA <= "01";
 									ALUSrcB <= "10";
 									ALUOp <= "0000";
-									state <= write_reg;
-									state_code <= "0100"; --WB
+									RegWrite<="010";
+									MemtoReg<="00";
+									state <= instruction_fetch;
+									state_code <= "0000";
 								when "000" =>       ------------BTEQZ
                            ALUSrcA <= "00";
 									ALUOp <= "1010"; ------------??§Ô???BEQZ????????????
                            state <= instruction_fetch ;
 									state_code <= "0000" ; --IF
-                                				when "100" =>		------------MTSP
-                                    					ALUSrcA <= "00";
+                         when "100" =>		------------MTSP     ok
+                           ALUSrcA <= "00";
 									ALUSrcB <= "00";
 									ALUOp <= "1011";
-									state <= write_reg;
-                                					state_code <= "0100"; --WB
-                                				when others =>
-                                    					null;
+									RegWrite <= "010"; 
+									MemtoReg <= "00" ;
+									state <= instruction_fetch;
+                           state_code <= "0000";
+                         when others =>
+                           null;
 							 end case;
 						 when "11101" =>
 								 state<=instruction_fetch;
@@ -399,17 +404,6 @@ begin
                                 				RegDst <= "00";
 								RegWrite <= "001"; 
 								MemtoReg <= "00" ;
-						when "01100" =>
-                        case instructions(10 downto 8) is
-                                				when "011" =>		------------ADDSP
-									RegWrite <= "010"; 
-									MemtoReg <= "00" ;
-								when "100" =>		------------MTSP
-									RegWrite <= "010"; 
-									MemtoReg <= "00" ;
-                                				when others =>
-                                    					null;
-							end case;
 						when "11101" =>
 							case instructions(4 downto 0) is
 								when "01010" =>		------------CMP
