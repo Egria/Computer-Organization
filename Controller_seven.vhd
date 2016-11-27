@@ -56,7 +56,7 @@ end Controler_seven;
 
 architecture Behavioral of Controler_seven is
 
-type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg,interrupt,empty);
+type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg,interrupt,empty,empty_branch);
 signal state : controler_state;
 begin
 
@@ -121,12 +121,12 @@ begin
 								when others=>
 									null;
 							end case;
-                  when "00010" =>             -------------B 
+                  when "00010" =>             -------------B  ok
                      ALUSrcA <= "00";
 							ALUSrcB <= "10";
 							ALUOp <= "0000" ;
-                     PCWrite <= '1';
-							--SE <= '0'; --11¦Ëimmediate??????????
+                     SE<="101";
+							PCWrite <= '1';
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
 						when "00100" =>				-------------BEQZ  ok
@@ -134,8 +134,8 @@ begin
 							ALUOp <= "1010";
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF
-                  when "00101" =>				-------------BNEZ
-                     ALUSrcA <= "00";         -------------??§Ô???BEQZ????????????
+                  when "00101" =>				-------------BNEZ  ok
+                     ALUSrcA <= "01";
 							ALUOp <= "1010";
 							state <= instruction_fetch ;
 							state_code <= "0000" ; --IF   
@@ -223,11 +223,10 @@ begin
 									MemtoReg<="00";
 									state <= write_reg;
 									state_code <= "0100";
-								when "000" =>       ------------BTEQZ
-                           ALUSrcA <= "00";
-									ALUOp <= "1010"; ------------??§Ô???BEQZ????????????
-                           state <= instruction_fetch ;
-									state_code <= "0000" ; --IF
+								when "000" =>       ------------BTEQZ  ok
+									RegRead<="01";
+									state <= empty_branch ;
+									state_code <= "1101" ;
                          when "100" =>		------------MTSP     ok
                            ALUSrcA <= "00";
 									ALUSrcB <= "00";
@@ -277,7 +276,7 @@ begin
 									ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "1100";
-								when "00011" =>			-------------SLTU
+								when "00011" =>			-------------SLTU  ok
                            ALUSrcA <= "01";
 									ALUSrcB <= "00";
 									ALUOp <= "1110";   --0 larger/equal, 1 smaller
@@ -471,11 +470,16 @@ begin
 				when interrupt =>
 					state<=interrupt;
 					state_code<="1111";
-				when empty =>
+				when empty =>		   --LW_SP,SW_SP
 					ALUSrcA<="01";
 					RegRead<="00";
 					state<=mem_control;
 					state_code<="0011";
+				when empty_branch => --BTEQZ
+					ALUSrcA <= "01";
+					ALUOp <= "1010";
+					state<=instruction_fetch;
+					state_code<="0000";
 			end case;
 		end if ;
 	end process;
@@ -492,6 +496,16 @@ begin
 			when "00100" =>				-------------BEQZ
 				PCSource<='1' and bZero_Ctrl;
 				PCWriteCond<=bZero_Ctrl;
+			when "00101" =>            -------------BNEZ
+				PCSource<='1' and not(bZero_Ctrl);
+				PCWriteCond<=not(bZero_Ctrl);
+			when "00010" =>            -------------B
+				PCSource<='0';
+			when "01100" =>
+				if (instructions(10 downto 8) = "000") then ----BTEQZ
+					PCSource<='1' and bZero_Ctrl;
+					PCWriteCond<=bZero_Ctrl;
+				end if;
 			when others =>
 				null;
 		 end case;
