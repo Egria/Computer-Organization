@@ -37,7 +37,8 @@ port(	clock:	in 	std_logic;
 	click: in std_logic;
 	tbre,tsre: in std_logic;
 	SerialDisable: in std_logic;
-	s1_out,s2_out,s3_out,s4_out,s6_out,s7_out,s8_out,s9_out,s10_out,s11_out,s12_out,s13_out,s14_out,s15_out: out std_logic_vector(15 downto 0)
+	s1_out,s2_out,s3_out,s4_out,s6_out,s7_out,s8_out,s9_out,s10_out,s11_out,s12_out,s13_out,s14_out,s15_out: out std_logic_vector(15 downto 0);
+	SWSP_Control: in std_logic
 	--s16_out: out std_logic_vector(2 downto 0);
 );
 end data_path;
@@ -130,7 +131,7 @@ port(
 end component;
 
 signal s4,s3:std_logic_vector(15 downto 0);--ram1_data is ram1_data,ram1_addr<=s3;
-signal s1,s2,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s17: std_logic_vector(15 downto 0); 
+signal s1,s2,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s17,s18: std_logic_vector(15 downto 0); 
 signal PCWriteTotal:std_logic;
 signal sign_extension_of_immediate_from_8,
 	sign_extension_of_immediate_from_5,
@@ -164,7 +165,7 @@ begin
   
 	
   U_A: dflip_flop_falling port map(click,rst,s8,s14);
-  U_B: dflip_flop_falling port map(click,rst,s9,s4);
+  U_B: dflip_flop_falling port map(click,rst,s9,s18);
   U_ALU_Result_Register: dflip_flop_falling port map(click,rst,s12,s13);
   U_DR: dflip_flop_falling port map(click,rst,ram1_data,s15);
 
@@ -172,7 +173,7 @@ begin
   rx,ry,s7,s8,s9);
   U_ALU: alu port map(rst,s10,s11,ALUOp,s12,ALU_zero);
   U_MemtoReg: multiplexor_two_bit generic map(16) port map(s12,s15,unsigned_extension_of_immediate_from_8,MemtoReg,s7);
-  U_ALUSrcA: multiplexor_two_bit generic map(16) port map(s2,s14,s4,ALUSrcA,s10);
+  U_ALUSrcA: multiplexor_two_bit generic map(16) port map(s2,s14,s18,ALUSrcA,s10);
   U_IorD: multiplexor port map(s2,s13,IorD,s3);
   U_SE: multiplexor_three_bit port map(sign_extension_of_immediate_from_8,
   sign_extension_of_immediate_from_5,
@@ -183,8 +184,9 @@ begin
   U_PCSource: multiplexor port map(s12,s13,PCSource,s1);
   U_IR: single_register port map(click,rst,IRWrite,ram1_data,s6);
   U_PC: single_register port map(click,rst,PCWriteTotal,s1,s2);
+  U_SWSP_Multiplexor: multiplexor port map(s18,s14,SWSP_Control,s4);
   U_RegDst: multiplexor_two_bit generic map(3) port map(rx,rz,ry,RegDst,s16);
-  U_ALUSrcB: multiplexor_two_bit generic map(16) port map(s4,"0000000000000001",s17,ALUSrcB,s11);
+  U_ALUSrcB: multiplexor_two_bit generic map(16) port map(s18,"0000000000000001",s17,ALUSrcB,s11);
 end struct;
 
 

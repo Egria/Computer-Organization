@@ -48,7 +48,9 @@ entity Controler_seven is
 			  SerialDisable: out std_logic;
 			  bZero_ctrl: in std_logic;
 			  state_code: out std_logic_vector(3 downto 0);
-			  RegRead: out std_logic_vector(1 downto 0)
+			  RegRead: out std_logic_vector(1 downto 0);
+			  SWSP_Control: out std_logic
+			  
 );
 end Controler_seven;
 
@@ -74,15 +76,18 @@ begin
 			ALUOp <= "0000" ;
 			ALUSrcA <= "00" ;
 			ALUSrcB <= "00" ;
+			SWSP_Control<='0';
 			PCWrite <= '0' ;
 			SE<="000";  
 			RegDst <= "00" ;
 			RegWrite <= "000" ;
 			SerialDisable<='0';
 			RegRead<="00";
+			SWSP_Control<='0';
 		elsif falling_edge(clk) then
 			case state is
 				when instruction_fetch =>
+					SWSP_Control <='0';
 					MemRead <= '1' ;
 					ALUSrcA <= "00" ;
 					IorD <= '0' ;
@@ -352,12 +357,14 @@ begin
 						  else	------------SRA    ok
 									ALUOp <= "1000";
 						  end if;
-						when "11010" =>		------------SW_SP
-                     ALUSrcA <= "01";
+						when "11010" =>		------------SW_SP   ok
+							RegRead<="10";
+							ALUSrcA <= "01";
 							ALUSrcB <= "10";
 							ALUOp <= "0000";
-							state <= mem_control ;
-							state_code <= "0011"; --MEM
+							state <= empty ;
+							SWSP_Control <='1';
+							state_code <= "1110"; --empty
 						when others =>
 							state <= instruction_fetch ;
 							state_code <= "0000"; --IF
@@ -381,8 +388,8 @@ begin
 							IorD <= '1' ;
 							state <= write_reg ;
 							state_code <= "0100"; --WB
-                        			when "11010"=>				-------------SW_SP
-                            				MemWrite <= '1' ;
+                   when "11010"=>				-------------SW_SP
+                     MemWrite <= '1' ;
 							IorD <= '1' ;
 							state <= write_reg ;
 							state_code <= "0100"; --WB                               
@@ -454,7 +461,7 @@ begin
 							RegWrite <= "011";
 							MemtoReg <= "00" ;
                   when "11010" =>				------------SW_SP
-                            				MemWrite <= '0' ; --??§Ô???SW?????????????
+                     MemWrite <= '0' ; 
 							IorD <= '0' ;
 						when others =>
 							null ;
@@ -465,6 +472,8 @@ begin
 					state<=interrupt;
 					state_code<="1111";
 				when empty =>
+					ALUSrcA<="01";
+					RegRead<="00";
 					state<=mem_control;
 					state_code<="0011";
 			end case;

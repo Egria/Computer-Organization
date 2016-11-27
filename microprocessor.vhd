@@ -79,7 +79,8 @@ port(	clock:	in 	std_logic;
 	click: in std_logic;
 	tbre,tsre: in std_logic;
 	SerialDisable: in std_logic;
-	s1_out,s2_out,s3_out,s4_out,s6_out,s7_out,s8_out,s9_out,s10_out,s11_out,s12_out,s13_out,s14_out,s15_out: out std_logic_vector(15 downto 0)
+	s1_out,s2_out,s3_out,s4_out,s6_out,s7_out,s8_out,s9_out,s10_out,s11_out,s12_out,s13_out,s14_out,s15_out: out std_logic_vector(15 downto 0);
+	SWSP_Control: in std_logic	
 	--s16_out: out std_logic_vector(2 downto 0);
 );
 end component;
@@ -103,14 +104,15 @@ component Controler_seven is
 			  SerialDisable: out std_logic;
 			  bZero_ctrl: in std_logic;
 			  state_code: out std_logic_vector(3 downto 0);
-			  RegRead: out std_logic_vector(1 downto 0)
+			  RegRead: out std_logic_vector(1 downto 0);
+			  SWSP_Control: out std_logic
 );
 end component;
 
 
 signal RegDst,RegRead,ALUSrcB: std_logic_vector(1 downto 0);
 signal MemRead,MemWrite,IorD,IRWrite,SerialDisable,
-	PCWrite,PCSource,PCWriteCond,ALU_zero:std_logic;
+	PCWrite,PCSource,PCWriteCond,ALU_zero,SWSP_Control:std_logic;
 signal MemtoReg,ALUSrcA:std_logic_vector(1 downto 0);
 signal RegWrite,SE: std_logic_vector(2 downto 0);
 signal ALUOp: std_logic_vector(3 downto 0);
@@ -123,11 +125,12 @@ PCWriteCond_out<=PCWriteCond;
 U_DATA_PATH: data_path port map(clock,rst,RegDst,RegWrite,RegRead,MemtoReg,ALUSrcA,
 	ALUSrcB,ALUOp,MemRead,MemWrite,IorD,IRWrite,PCWrite,PCSource,PCWriteCond,ALU_zero,
 	SE,instructions,ram1_data,ram1_addr,data_ready,
-	ram1_oe,ram1_we,ram1_en,wrn,rdn,click,tbre,tsre,SerialDisable,s1_out,s2_out,s3_out,s4_out,s6_out,s7_out,s8_out,s9_out,s10_out,s11_out,s12_out,s13_out,s14_out,s15_out);	
+	ram1_oe,ram1_we,ram1_en,wrn,rdn,click,tbre,tsre,SerialDisable,s1_out,s2_out,s3_out,s4_out,s6_out,
+	s7_out,s8_out,s9_out,s10_out,s11_out,s12_out,s13_out,s14_out,s15_out,SWSP_Control);	
 
 U_Controler_Seven: Controler_seven port map(rst,click,instructions,
 	PCWrite,PCWriteCond,PCSource,ALUOp,ALUSrcA,ALUSrcB,MemRead,MemWrite,
-	IRWrite,MemtoReg,RegWrite,RegDst,IorD,SE,SerialDisable,ALU_zero,state_code,RegRead);
+	IRWrite,MemtoReg,RegWrite,RegDst,IorD,SE,SerialDisable,ALU_zero,state_code,RegRead,SWSP_Control);
 
 
 
