@@ -54,7 +54,7 @@ end Controler_seven;
 
 architecture Behavioral of Controler_seven is
 
-type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg,interrupt);
+type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg,interrupt,empty);
 signal state : controler_state;
 begin
 
@@ -141,14 +141,14 @@ begin
 							RegWrite <= "001";
                      state <= instruction_fetch;
 							state_code <= "0000"; --WB  
-                  when "10010" =>             -------------LW_SP
+                  when "10010" =>             -------------LW_SP  ok
                      RegRead<="10";
 							ALUSrcA <= "01";
                      ALUSrcB <= "10" ;
                      ALUOp <= "0000" ;  
 							SE <="000";  
-							state <= mem_control ;
-							state_code <= "0011" ; --MEM
+							state <= empty ;
+							state_code <= "1110" ; --empty
 						when "10011" =>				-------------LW	ok
 							ALUSrcA <= "01" ;
 							ALUSrcB <= "10" ;
@@ -464,6 +464,9 @@ begin
 				when interrupt =>
 					state<=interrupt;
 					state_code<="1111";
+				when empty =>
+					state<=mem_control;
+					state_code<="0011";
 			end case;
 		end if ;
 	end process;
