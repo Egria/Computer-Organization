@@ -75,6 +75,18 @@ begin
 						result_middle :=input_1;
 					when "1011"=>
 						result_middle :=input_2;
+					when "1101"=>--CMP: 0 if equal, 1 if inequal
+						if (input_1=input_2) then
+							result_middle:="0000000000000000";
+						else
+							result_middle:="0000000000000001";
+						end if;
+					when "1110"=> --SLTU: 0 if larger or equal, 1 if smaller
+						if (unsigned(input_1)<unsigned(input_2)) then
+							result_middle:="0000000000000001";
+						else
+							result_middle:="0000000000000000";
+						end if;
 					when others =>	 
 						result_middle := (input_1'range =>'0');
 				end case;
