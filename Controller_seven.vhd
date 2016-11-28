@@ -293,6 +293,9 @@ begin
                              when "010" =>  ------------MFPC  ok
 											ALUSrcA <= "00";
 											ALUOp <= "1010"; 
+											RegDst<="00";
+											RegWrite<="001";
+											MemtoReg<="00";
 										when others =>
 										null ;
 									end case;
