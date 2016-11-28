@@ -170,14 +170,17 @@ u3:clkcon port map
 				if(tmp_write_total='1') then--MemWrite
 					if(s3=x"bf00") then--only use the lower 8 bits
 						data_to_send_2<=s4(7 downto 0);
-						wrn_2<='0';
+						wrn_2<='1';
 						state<=write_serial2_1;
 						--send_data_signal <=not send_data_signal;--send data to serial port 
+					elsif(s3=x"bf01") then
+					ram1_en<='1';
+					ram1_data(0)<=tbre and tsre;
 					else
 					ram1_data<=s4;
 					ram1_en<='0';
 					end if;
-				elsif(MemRead='1') then
+				elsif(MemRead='1') then--MemRead
 					--if(s3=x"bf01") then
 					--read state from serial port here
 					--	ram1_data(0)<=data_send_finished;--the lowest bit.
@@ -185,9 +188,13 @@ u3:clkcon port map
 					--else
 					if(s3=x"bf00") then
 					ram1_en<='1';
-					rdn_2<='1';
+					rdn_2<='1';--dout<='zzz';
 					state<=read_serial2_1;
-					clear_data_ready_2<='1';
+					--clear_data_ready_2<='1';--data_ready_2<='0';
+					elsif(s3=x"bf01") then
+					ram1_en<='1';
+					clear_data_ready_2<='0';
+					ram1_data(1)<=data_ready_2;
 					else
 					--serial_read_request_from_cpu<='0';	
 					--if receive data from serial port, memory read should be closed,
@@ -378,11 +385,12 @@ u3:clkcon port map
 			when write_serial2_1=>
 				state <=write_serial2_2;
 				wrn_2<='0';
+				--state<=waiting;
 			when write_serial2_2=>
 				wrn_2<='1';
-				if(tbre_2='1' and tsre_2='1') then
-					state <=waiting;
-				end if;
+				--if(tbre_2='1' and tsre_2='1') then
+				state <=waiting;
+				--end if;
 			when read_serial2_1=>
 				clear_data_ready_2<='0';
 				if(data_ready_2='1') then
@@ -390,6 +398,7 @@ u3:clkcon port map
 					rdn_2<='0';--data get
 				end if;
 			when read_serial2_2=>
+				  clear_data_ready_2<='1';--data_ready_2<='0';
 				  ram1_data(7 downto 0)<=data_from_port_2;
 				  state<=waiting;
 			when others =>
