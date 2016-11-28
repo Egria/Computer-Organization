@@ -102,12 +102,15 @@ type main_state is (
 	signal write_delay: integer range 0 to 15;
 	signal tmp_addr: std_logic_vector(15 downto 0);
 	signal tmp_write_1,tmp_write_2,tmp_write_total:std_logic;--unit step clock only, detecting the first rising edge of MemWrite
+	signal tmp_read_1,tmp_read_2,tmp_read_total:std_logic;--unit step clock only, detecting the first rising edge of MemWrite
+
 	--signal serial_read_request_from_cpu;
 begin
   MemReadTotal<=mem_read_request_from_serial_port or MemRead;-- and (not serial_read_request_from_cpu));
   MemWriteTotal<=mem_write_request_from_serial_port or MemWrite;
   ram1_addr<=tmp_addr or s3;
   tmp_write_total<=tmp_write_1 and (not tmp_write_2);
+  tmp_read_total<=tmp_read_1 and (not tmp_read_2);
   u_serial_write: serial_write port map(tbre,tsre,reset,clock,
   send_data_signal,data_send_finished,wrn); 
   u_serial_read: serial_read port map(clock,data_ready,reset,rdn,data_received);
@@ -144,9 +147,13 @@ u3:clkcon port map
 	 if(reset='0') then
     tmp_write_1<='0';
 	 tmp_write_2<='0';
+	 tmp_read_1<='0';
+	 tmp_read_2<='0';
 	 elsif(rising_edge(clock)) then
 	 tmp_write_1<=MemWrite;
 	 tmp_write_2<=tmp_write_1;
+	 tmp_read_1<=MemRead;
+	 tmp_read_2<=tmp_read_1;
 	 end if;
   end process;
   process(clock,reset)--default: all input signals are sensentive.
@@ -180,7 +187,7 @@ u3:clkcon port map
 					ram1_data<=s4;
 					ram1_en<='0';
 					end if;
-				elsif(MemRead='1') then--MemRead
+				elsif(tmp_read_total='1') then--MemRead
 					--if(s3=x"bf01") then
 					--read state from serial port here
 					--	ram1_data(0)<=data_send_finished;--the lowest bit.
@@ -207,6 +214,8 @@ u3:clkcon port map
 					if(data_received = '1') then
 							state <= readcmd;
 					end if;
+				else
+					ram1_en<='0';
 				end if;
 			when readcmd => 	
 				case ram1_data(1 downto 0) is
@@ -393,10 +402,10 @@ u3:clkcon port map
 				--end if;
 			when read_serial2_1=>
 				clear_data_ready_2<='0';
-				if(data_ready_2='1') then
+				--if(data_ready_2='1') then
 					state<=read_serial2_2;
 					rdn_2<='0';--data get
-				end if;
+				--end if;
 			when read_serial2_2=>
 				  clear_data_ready_2<='1';--data_ready_2<='0';
 				  ram1_data(7 downto 0)<=data_from_port_2;
