@@ -574,7 +574,7 @@ UASM:
 	
 UASMLOOP:		
 	
-	LW R1 R3 0x0000    ;R3为内存数据	
+	LW R1 R3 0x0000    ;R3为内存数据	0x01b4
 
 	;发送低八位
 	MFPC R7
