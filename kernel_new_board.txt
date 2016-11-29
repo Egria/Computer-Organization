@@ -511,7 +511,7 @@ GOTOBEGIN:
 ;反汇编：将需要反汇编的地址处的值发给终端处理	
 UASM:
 ;读取地址低位到r5
-	MFPC R7
+	MFPC R7                        ;0x0184
 	ADDIU R7 0x0003	
 	NOP	
 	B TESTR	
