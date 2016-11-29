@@ -2,18 +2,18 @@ ADDSP3 R0 0x0000;0x00
 ADDSP3 R0 0x0000;0x01
 NOP;0x02
 
-;�����û�����Ĵ����ĵ�ַ 
+;保存用户程序寄存器的地址 
 ;0xBF10  0xBF11 BF12 0xBF13 BF14 0xBF15
 ; R0    R1   R2   R3   R4   R5  
 
 B START;0x03
 NOP
 
-DELINT:   ;�жϴ�������
+DELINT:   ;中断处理程序
 	NOP
 	NOP
 	NOP
-	;�����û������ֳ�
+	;保存用户程序现场
 	LI R6 0xBF
 	SLL R6 R6 0x0000
 	ADDIU R6 0x10					;R6=0xBF10
@@ -25,27 +25,27 @@ DELINT:   ;�жϴ�������
 	
 
 	
-	;R1=�жϺ�
+	;R1=中断号
 	LW_SP R1 0x0000
 	ADDSP 0x0001
 	LI R0 0x00FF
 	AND R1 R0
 	
-	;R2=Ӧ�ó����pc
+	;R2=应用程序的pc
 	LW_SP R2 0x0000
 	ADDSP 0x0001
 	
-	;����r3
+	;保存r3
 	ADDSP 0xFFFF
 	SW_SP R3 0x0000
 
 
 	
-	;�����û����򷵻ص�ַ
+	;保存用户程序返回地址
 	ADDSP 0xFFFF
 	SW_SP R7 0x0000
 	
-	;��ʾ�նˣ������жϴ���
+	;提示终端，进入中断处理
 	LI R3 0x000F
 	MFPC R7 
 	ADDIU R7 0x0003  
@@ -56,7 +56,7 @@ DELINT:   ;�жϴ�������
 	SLL R6 R6 0x0000 ;R6=0xBF00
 	SW R6 R3 0x0000
 	NOP
-	;����жϺ�
+	;输出中断号
 	MFPC R7 
 	ADDIU R7 0x0003  
 	NOP
@@ -67,7 +67,7 @@ DELINT:   ;�жϴ�������
 	SW R6 R1 0x0000
 	NOP
 	
-	;��ʾ�նˣ��жϴ�������
+	;提示终端，中断处理结束
 	LI R3 0x000F
 	MFPC R7 
 	ADDIU R7 0x0003  
@@ -79,16 +79,16 @@ DELINT:   ;�жϴ�������
 	SW R6 R3 0x0000
 	NOP
 	
-	;R6���淵�ص�ַ
+	;R6保存返回地址
 	ADDIU3 R2 R6 0x0000
 	
-	;��r3=IH����λ���1��
+	;用r3=IH（高位变成1）
 	MFIH R3
 	LI R0 0x0080
 	SLL R0 R0 0x000
 	OR R3 R0
 	
-	;�ָ��ֳ�
+	;恢复现场
 	LI R7 0xBF
 	SLL R7 R7 0x0000
 	ADDIU R7 0x10					;R7=0xBF10
@@ -96,7 +96,7 @@ DELINT:   ;�жϴ�������
 	LW R7 R1 0x0001
 	LW R7 R2 0x0002
 	
-	;r7=�û����򷵻ص�ַ
+	;r7=用户程序返回地址
 	LW_SP R7 0x0000
 	
 	ADDSP 0x0001
@@ -111,17 +111,17 @@ DELINT:   ;�жϴ�������
 
 ;init  0x8251
 START:
-	;��ʼ��IH�Ĵ��������λΪ1ʱ�������жϣ�Ϊ0ʱ����������ʼ��Ϊ0��kernel�������ж�
+	;初始化IH寄存器，最高位为1时，允许中断，为0时不允许。初始化为0，kernel不允许中断
 	LI R0 0x07;0x65	
 	MTIH R0;0x66
-	;��ʼ��ջ��ַ
+	;初始化栈地址
 	LI R0 0x00BF,;0x67 
 	SLL R0 R0 0x0000;0x68
 	ADDIU R0 0x10;0x69					;R0=0xBF10 
 	MTSP R0;0x6a
 	NOP;0x6b
 	
-	;�û��Ĵ���ֵ��ʼ��
+	;用户寄存器值初始化
 	LI R6 0x00BF ;0x6c
 	SLL R6 R6 0x0000;0x6d
 	ADDIU R6 0x10;0x6e					;R6=0xBF10 
@@ -137,9 +137,9 @@ START:
 	SW R6 R0 0x0007;0x78
 	ADDIU R0 0x0001;0x79
 	SW R
-	;�ٶ���	
+	;少东西	
 	;WELCOME
-	MFPC R7 ;0x7d,MFPC��
+	MFPC R7 ;0x7d,MFPC错
 	ADDIU R7 0x0003 ;0x7e  
 	NOP 0x7f
 	B TESTW;;R7=0 0x80 	
@@ -185,8 +185,8 @@ START:
 	
 
 	
-BEGIN:          ;�������
-	;�����ַ������浽r1
+BEGIN:          ;检测命令
+	;接收字符，保存到r1
 	MFPC R7;0xa1
 	ADDIU R7 0x0003;0xa2	
 	NOP;0xa3	
@@ -200,29 +200,29 @@ BEGIN:          ;�������
 	NOP;0xab	
 	
 
-	;����Ƿ�ΪR����		
+	;检测是否为R命令		
 	LI R0 0x0052;0xac
 	CMP R0 R1;0xad
 	BTEQZ SHOWREGS;0xae	
 	NOP	;0xaf
-	;����Ƿ�ΪD����
+	;检测是否为D命令
 	LI R0 0x0044;0xb0
 	CMP R0 R1;0xb1
 	BTEQZ SHOWMEM;0xb2
 	NOP	;0xb3
 	
-	;����Ƿ�ΪA����
+	;检测是否为A命令
 	LI R0 0x0041;0xb4
 	CMP R0 R1;0xb5
 	BTEQZ GOTOASM;0xb6
 	NOP;0xb7	
 	
-	;����Ƿ�ΪU����
+	;检测是否为U命令
 	LI R0 0x0055;0xb8
 	CMP R0 R1
 	BTEQZ GOTOUASM
 	NOP	
-	;����Ƿ�ΪG����
+	;检测是否为G命令
 	LI R0 0x0047
 	CMP R0 R1
 	BTEQZ GOTOCOMPILE
@@ -231,7 +231,7 @@ BEGIN:          ;�������
 	B BEGIN
 	NOP
 
-;������������
+;各处理块的入口
 GOTOUASM:
 	NOP
 	B UASM
@@ -247,23 +247,23 @@ GOTOCOMPILE:
 	NOP
   
 	
-;����8251�Ƿ���д
+;测试8251是否能写
 TESTW:	
-	NOP��0xcb	 		
+	NOP；0xcb	 		
 	LI R6 0x00BF;0xcc 
 	SLL R6 R6 0x0000 ;0xcd
 	ADDIU R6 0x0001;0xce 
 	LW R6 R0 0x0000;0xcf 
 	LI R6 0x0001;0xd0 
 	AND R0 R6;0xd1 
-	BEQZ R0 TESTW     ;BF01&1=0 ��ȴ�,0xd2	
+	BEQZ R0 TESTW     ;BF01&1=0 则等待,0xd2	
 	NOP	;0xd3	
 	JR R7;0xd4
 	NOP 
 	
 
 	
-;����8251�Ƿ��ܶ�
+;测试8251是否能读
 TESTR:	
 	NOP;0xd6	
 	LI R6 0x00BF;0xd7 
@@ -272,15 +272,15 @@ TESTR:
 	LW R6 R0 0x0000;0xda 
 	LI R6 0x0002;0xdb
 	AND R0 R6;0xdc 
-	BEQZ R0 TESTR   ;BF01&2=0  ��ȴ�,0xdd	
+	BEQZ R0 TESTR   ;BF01&2=0  则等待,0xdd	
 	NOP;0xde	
 	JR R7;0xdf
 	NOP 		
 	
 	
-SHOWREGS:    ;R�����ӡR0-R5
-	LI R1 0x0006  ;R1�ݼ�  
-	LI R2 0x0006   ;R2����
+SHOWREGS:    ;R命令，打印R0-R5
+	LI R1 0x0006  ;R1递减  
+	LI R2 0x0006   ;R2不变
 	
 LOOP:
 	LI R0  0x00BF
@@ -288,9 +288,9 @@ LOOP:
 	ADDIU R0 0x0010
 	SUBU R2 R1 R3   ;R2=0,1,2,3
 	ADDU R0 R3 R0   ;R0=BF10...
-	LW R0 R3 0x0000    ;R3=�û������ R0,R1,R2	
+	LW R0 R3 0x0000    ;R3=用户程序的 R0,R1,R2	
 
-	;���͵Ͱ�λ
+	;发送低八位
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP
@@ -299,7 +299,7 @@ LOOP:
 	LI R6 0x00BF 
 	SLL R6 R6 0x0000 ;R6=BF00	
 	SW R6 R3 0x0000	
-	;���͸߰�λ
+	;发送高八位
 	SRA R3 R3 0x0000
 	MFPC R7
 	ADDIU R7 0x0003	
@@ -324,9 +324,9 @@ LOOP:
 	
 	
 	
-SHOWMEM:  ;�鿴�ڴ�	
-;D��ȡ��ַ��λ��r5
-	MFPC R7
+SHOWMEM:  ;查看内存	
+;D读取地址低位到r5
+	MFPC R7    0x0100
 	ADDIU R7 0x0003	
 	NOP	
 	B TESTR	
@@ -338,7 +338,7 @@ SHOWMEM:  ;�鿴�ڴ�
 	AND R5 R6
 	NOP	
 	
-	;��ȡ��ַ��λ��r1
+	;读取地址高位到r1
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -353,11 +353,11 @@ SHOWMEM:  ;�鿴�ڴ�
 	
 	
 	
-	;R1�洢��ַ
+	;R1存储地址
 	SLL R1 R1 0x0000
 	OR R1 R5
 	
-	;��ȡ��ʾ������λ��R5
+	;读取显示次数低位到R5
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -369,7 +369,7 @@ SHOWMEM:  ;�鿴�ڴ�
 	LI R6 0x00FF
 	AND R5 R6
 	NOP	
-	;��ȡ��ʾ������λ��R2
+	;读取显示次数高位到R2
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -381,18 +381,18 @@ SHOWMEM:  ;�鿴�ڴ�
 	LI R6 0x00FF
 	AND R2 R6
 	NOP	
-	;R2�����ڴ����
+	;R2保存内存个数
 	SLL R2 R2 0x0000
 	OR R2 R5
 
 	
-		;ѭ������	
+		;循环发出	
 	
 MEMLOOP:		
 	
-	LW R1 R3 0x0000    ;R3Ϊ�ڴ�����	
+	LW R1 R3 0x0000    ;R3为内存数据	
 
-	;���͵Ͱ�λ
+	;发送低八位
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP
@@ -401,7 +401,7 @@ MEMLOOP:
 	LI R6 0x00BF 
 	SLL R6 R6 0x0000 ;R6=0xBF00	
 	SW R6 R3 0x0000	
-	;���͸߰�λ
+	;发送高八位
 
 	SRA R3 R3 0x0000
 	MFPC R7
@@ -413,7 +413,7 @@ MEMLOOP:
 	SLL R6 R6 0x0000 ;R6=0xBF00	
 	SW R6 R3 0x0000	
 	
-	ADDIU R1 0x0001   ;R1=��ַ�ӼӼ�
+	ADDIU R1 0x0001   ;R1=地址加加加
 	ADDIU R2 0xFFFF
 	NOP
 	BNEZ R2 MEMLOOP
@@ -423,9 +423,9 @@ MEMLOOP:
 	NOP		
 
 
- ;���	
+ ;汇编	
 ASM:  
-	;A�����ȡ��ַ��λ��r5
+	;A命令读取地址低位到r5
 	MFPC R7;0x0149
 	ADDIU R7 0x0003;0x014a	
 	NOP;0x014b	
@@ -437,7 +437,7 @@ ASM:
 	LI R6 0x00FF
 	AND R5 R6
 	NOP;0x0153	
-	;��ȡ��ַ��λ��r1
+	;读取地址高位到r1
 	MFPC R7;0x0154
 	ADDIU R7 0x0003;0x0155	
 	NOP;0x0156	
@@ -450,21 +450,21 @@ ASM:
 	AND R1 R6
 	NOP	
 	
-	;R1�洢��ַ
+	;R1存储地址
 	SLL R1 R1 0x0000
 	OR R1 R5
 	
 3	
 	
 	
-	;����ַ�Ƿ�Ϸ�
+	;检测地址是否合法
 	LI R0 0x0000;0x0161
 	CMP R0 R1      
   	BTEQZ GOTOBEGIN;0x0163
 	NOP	
 	
  
-	;��ȡ���ݵ�λ��R5
+	;读取数据低位到R5
 	MFPC R7;0x0165
 	ADDIU R7 0x0003	
 	NOP	;0x0167
@@ -478,7 +478,7 @@ ASM:
 	NOP;0x016f	
 	
 
-	;��ȡ���ݸ�λ��R2
+	;读取数据高位到R2
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP;0x0172	
@@ -490,7 +490,7 @@ ASM:
 	LI R6 0x00FF
 	AND R2 R6
 	NOP;0x017a	
-	;R2��������
+	;R2保存数据
 	SLL R2 R2 0x0000
 	OR R2 R5
 			
@@ -508,9 +508,9 @@ GOTOBEGIN:
 	
 	
 	
-;����ࣺ����Ҫ�����ĵ�ַ����ֵ�����ն˴���	
+;反汇编：将需要反汇编的地址处的值发给终端处理	
 UASM:
-;��ȡ��ַ��λ��r5
+;读取地址低位到r5
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -522,7 +522,7 @@ UASM:
 	LI R6 0x00FF
 	AND R5 R6
 	NOP	
-	;��ȡ��ַ��λ��r1
+	;读取地址高位到r1
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -537,11 +537,11 @@ UASM:
 	
 	
 	
-	;R1�洢��ַ
+	;R1存储地址
 	SLL R1 R1 0x0000
 	OR R1 R5
 	
-	;��ȡ��ʾ������λ��R5
+	;读取显示次数低位到R5
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -553,7 +553,7 @@ UASM:
 	LI R6 0x00FF
 	AND R5 R6
 	NOP	
-	;��ȡ��ʾ������λ��R2
+	;读取显示次数高位到R2
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -565,18 +565,18 @@ UASM:
 	LI R6 0x00FF
 	AND R2 R6
 	NOP	
-	;R2�����ڴ����
+	;R2保存内存个数
 	SLL R2 R2 0x0000
 	OR R2 R5
 
 	
-		;ѭ������	
+		;循环发出	
 	
 UASMLOOP:		
 	
-	LW R1 R3 0x0000    ;R3Ϊ�ڴ�����	
+	LW R1 R3 0x0000    ;R3为内存数据	
 
-	;���͵Ͱ�λ
+	;发送低八位
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP
@@ -585,7 +585,7 @@ UASMLOOP:
 	LI R6 0x00BF 
 	SLL R6 R6 0x0000 ;R6=0xBF00	
 	SW R6 R3 0x0000	
-	;���͸߰�λ
+	;发送高八位
 
 	SRA R3 R3 0x0000
 	MFPC R7
@@ -597,7 +597,7 @@ UASMLOOP:
 	SLL R6 R6 0x0000 ;R6=0xBF00	
 	SW R6 R3 0x0000	
 	
-	ADDIU R1 0x0001   ;R1=��ַ�ӼӼ�
+	ADDIU R1 0x0001   ;R1=地址加加加
 	ADDIU R2 0xFFFF
 	NOP
 	BNEZ R2 UASMLOOP
@@ -606,9 +606,9 @@ UASMLOOP:
 	B BEGIN
 	NOP			
 	
-;����ִ��
+;连续执行
 COMPILE:
-	;��ȡ��ַ��λ��R5
+	;读取地址低位到R5
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -620,7 +620,7 @@ COMPILE:
 	LI R6 0x00FF
 	AND R5 R6
 	NOP	
-	;��ȡ�ڴ��λ��R2
+	;读取内存高位到R2
 	MFPC R7
 	ADDIU R7 0x0003	
 	NOP	
@@ -632,7 +632,7 @@ COMPILE:
 	LI R6 0x00FF
 	AND R2 R6
 	NOP	
-	;R2�����ڴ��ַ  ����r6
+	;R2保存内存地址  传给r6
 	SLL R2 R2 0x0000
 	OR R2 R5
 	ADDIU3 R2 R6 0x0000
@@ -647,7 +647,7 @@ COMPILE:
 	SW_SP R5 0x0000
 	
 	
-	;�жϱ�����R5��
+	;中断保存在R5中
 	MFIH R5
 	LI R1 0x0080
 	SLL R1 R1 0x000
@@ -655,7 +655,7 @@ COMPILE:
 	
 	
 	
-	;�ָ��ֳ�
+	;恢复现场
 	LW R7 R0 0x0000
 	LW R7 R1 0x0001
 	LW R7 R2 0x0002
@@ -666,11 +666,11 @@ COMPILE:
 	
 	MFPC R7
 	ADDIU R7 0x0004
-	MTIH R5    ;IH��λ��1	
+	MTIH R5    ;IH高位赋1	
 	JR R6
-	LW_SP R5 0x0000  ;R5�ָ��ֳ�
+	LW_SP R5 0x0000  ;R5恢复现场
 	
-	;�û�����ִ����ϣ�����kernel�������ֳ�
+	;用户程序执行完毕，返回kernel，保存现场
 	NOP
 	NOP
 	ADDSP 0x0001
@@ -685,7 +685,7 @@ COMPILE:
 	SW R7 R4 0x0004
 	SW R7 R5 0x0005
 	
-	;IH��λ��0
+	;IH高位赋0
 	MFIH R0
 	LI R1 0x007F
 	SLL R1 R1 0x0000
@@ -694,7 +694,7 @@ COMPILE:
 	AND R0 R1
 	MTIH R0
 	
-	;���ն˷��ͽ����û�������ʾ
+	;给终端发送结束用户程序提示
 	LI R1 0x0007
 	MFPC R7
 	ADDIU R7 0x0003	
