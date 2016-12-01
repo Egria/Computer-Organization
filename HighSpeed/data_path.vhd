@@ -44,7 +44,6 @@ port(	clock:	in 	std_logic;
 --	timerEnable: in std_logic;
 --	IsOverFlow: out std_logic;
 	seg1: out std_logic_vector(6 downto 0)
-	
 	--s16_out: out std_logic_vector(2 downto 0);
 );
 end data_path;
@@ -68,7 +67,9 @@ Port(
 	txd:out std_logic;
 	seg1: out std_logic_vector(6 downto 0);
 	data_send_finished_from_port_2,data_received_from_port_2: out std_logic;
-	SpecialAddrVisit: out std_logic	
+	SpecialAddrVisit:out std_logic_vector(1 downto 0);
+	data_from_port_2: out std_logic_vector(7 downto 0)
+	
 	
 	);
 end component;
@@ -143,9 +144,10 @@ port(
 end component;
 signal s4,s3:std_logic_vector(15 downto 0);--ram1_data is ram1_data,ram1_addr<=s3;
 signal s1,s2,s6,s7,s8,s9,s10,s11,s12,s13,s14,s15,s17,s18,s19: std_logic_vector(15 downto 0); 
-signal PCWriteTotal,data_send_finished_from_port_2,data_received_from_port_2,SpecialAddrVisit:std_logic;
-signal serialStatusBits: std_logic_vector(15 downto 0);
-
+signal PCWriteTotal,data_send_finished_from_port_2,data_received_from_port_2:std_logic;
+signal SpecialAddrVisit:std_logic_vector(1 downto 0);
+signal serialStatusBits,data_from_port_2_extension: std_logic_vector(15 downto 0);
+signal data_from_port_2: std_logic_vector(7 downto 0);
 signal sign_extension_of_immediate_from_8,
 	sign_extension_of_immediate_from_5,
 	unsigned_extension_of_immediate_from_8,
@@ -168,6 +170,8 @@ begin
   ry<=s6(7 downto 5);
   rz<=s6(4 downto 2);
   instructions<=s6;
+  data_from_port_2_extension<="00000000" & data_from_port_2;
+--  data_from_port_2_out<=data_from_port_2;
   	--for test purpose only
 	s1_out<=s1;s2_out<=s2;s8_out<=s8;s10_out<=s10;s11_out<=s11;s12_out<=s12;s13_out<=s13;
 	s15_out<=s15;s7_out<=s7;s4_out<=s4;
@@ -176,7 +180,8 @@ begin
 	U_SerialBuffer: serial_buffer port map(clock,rst,MemRead,MemWrite,
    s3,s4,ram1_data,ram1_addr,data_ready,
    tbre,tsre,ram1_oe,ram1_we,ram1_en,wrn,rdn,rxd,txd,seg1,
-	data_send_finished_from_port_2,data_received_from_port_2,SpecialAddrVisit);
+	data_send_finished_from_port_2,data_received_from_port_2,
+	SpecialAddrVisit,data_from_port_2);
   
 	
   U_A: dflip_flop_falling port map(clock,rst,s8,s14);
@@ -203,7 +208,7 @@ begin
   U_PC: single_register port map(clock,rst,PCWriteTotal,s1,s2);
   U_SWSP_Multiplexor: multiplexor port map(s18,s14,SWSP_Control,s4);
   U_RegDst: multiplexor_two_bit generic map(3) port map(rx,rz,ry,RegDst,s16);
-  U_ExternalOrInternalChoice: multiplexor port map(s7,serialStatusBits,
-  SpecialAddrVisit,s19);	
-
+  U_ExternalOrInternalChoice: multiplexor_two_bit generic map(16) port map(s7,serialStatusBits,
+  	data_from_port_2_extension,
+	SpecialAddrVisit,s19);	
 end struct;
