@@ -45,20 +45,31 @@ entity Controler_seven is
 			  RegDst : out std_logic_vector(1 downto 0) ;
 			  IorD : out std_logic;
 			  SE: out std_logic_vector(2 downto 0);
-			  SerialDisable: out std_logic;
 			  bZero_ctrl: in std_logic;
 			  state_code: out std_logic_vector(3 downto 0);
 			  RegRead: out std_logic_vector(1 downto 0);
-			  SWSP_Control: out std_logic
-			  
+			  SWSP_Control: out std_logic;
+			  CPUDisable: in std_logic			  
+		--	  timerEnable: in std_logic;
+		--	  IsOverFlow: out std_logic
 );
 end Controler_seven;
 
 architecture Behavioral of Controler_seven is
 
-type controler_state is (instruction_fetch,decode,execute,mem_control,write_reg,interrupt,empty,empty_branch);
+type controler_state is (instruction_fetch,decode,execute,
+mem_control,write_reg,interrupt,empty,empty_branch);
 signal state : controler_state;
+signal CPUDisable_inner: std_logic;
 begin
+ process(clk,rst)
+  begin
+	 if(rst='0') then
+	 CPUDisable_inner<='0';
+	 elsif(rising_edge(CPUDisable)) then
+	 CPUDisable_inner<=not CPUDisable_inner;
+	 end if;
+	end process;
 
 	
 
@@ -81,26 +92,32 @@ begin
 			SE<="000";  
 			RegDst <= "00" ;
 			RegWrite <= "000" ;
-			SerialDisable<='0';
 			RegRead<="00";
 			SWSP_Control<='0';
 		elsif falling_edge(clk) then
 			case state is
 				when instruction_fetch =>
-					SWSP_Control <='0';
-					MemRead <= '1' ;
-					ALUSrcA <= "00" ;
-					IorD <= '0' ;
-					ALUSrcB <= "01" ;
-					ALUOp <= "0000";
-					PCWrite <= '1' ;
-					IRWrite <= '1' ;
-					RegWrite <= "000" ;
-					state <= decode ;
-					MemtoReg <= "00";
-					state_code <= "0001" ; --DE
-					SerialDisable<='1';
-					RegRead<="00";
+					if(CPUDisable_inner='1') then
+							state <= instruction_fetch;
+							ALUSrcA<="10";
+							ALUSrcB<="00";
+							ALUOp<="0001";
+							IorD<='1';
+					else
+						SWSP_Control <='0';
+						ALUSrcA <= "00" ;
+						IorD <= '0' ;
+						ALUOp <= "0000";
+						RegWrite <= "000" ;
+						MemtoReg <= "00";
+						MemRead <= '1' ;
+						ALUSrcB <= "01" ;
+						PCWrite <= '1' ;
+						RegRead<="00";					
+						IRWrite <= '1' ;
+						state <= decode ;
+						state_code <= "0001" ; --DE					
+					end if;
 				when decode =>
 					MemRead <= '0';
 					PCWrite <= '0';
@@ -312,6 +329,10 @@ begin
 							state_code <= "0000" ; 
 						when "11111" => 				-------------INT
 							state <= interrupt;
+						--	ALUSrcA<="10";
+						--	ALUSrcB<="00";
+						--	ALUOp<="0001";
+							IorD<='1';
 							state_code <= "1111";
 						when "11110"=>
                            case instructions(1 downto 0) is
@@ -408,6 +429,7 @@ begin
 							MemtoReg <= "01" ;	
 						when "10011" =>				-------------LW	
 							RegDst <= "10";
+							MemRead<='0';
 							RegWrite <= "001";
 							MemtoReg <= "01" ;
 						when "11011" =>				-------------SW	
@@ -472,7 +494,9 @@ begin
 					state_code <="0000"; --IF
 				when interrupt =>
 					state<=interrupt;
-					state_code<="1111";
+					ALUSrcA<="10";
+					ALUSrcB<="00";
+					ALUOp<="0001";
 				when empty =>		   --LW_SP,SW_SP
 					ALUSrcA<="01";
 					RegRead<="00";
@@ -522,3 +546,4 @@ begin
 
 
 end Behavioral;
+
